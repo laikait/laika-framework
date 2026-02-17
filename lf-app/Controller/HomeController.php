@@ -32,6 +32,7 @@ class HomeController
         $tpl->assign('title', 'Home');
         // Assign Data
         $tpl->assign('welcome', 'WELCOME!');
+        $tpl->assign('description', 'Your Lightweight Micro Framework for Fast and Clean Development.');
 
         // load View File
         return $tpl->view('home');
