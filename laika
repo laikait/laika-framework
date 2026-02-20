@@ -30,5 +30,5 @@ if (!is_file($app_file)) {
 require_once($app_file);
 
 
-$kernel = new Kernel($argv);
+$kernel = new Kernel();
 $kernel->run($argv);
