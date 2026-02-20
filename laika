@@ -14,21 +14,22 @@
 define('APP_PATH', __DIR__);
 
 // Use Console
-use Laika\Core\Console\Kernel;
+use Laika\Core\Console\Console;
 
 // Check LAIKA Working From CLI
 if (strtolower(PHP_SAPI) !== 'cli') {
-    die("WARNING: Require Terminal To Run Laika CLI!\n");
+    echo "WARNING: Use Terminal To Run Laika CLI!\n";
+    exit(0);
 }
 
-$app_file = APP_PATH.'/lf-boot/app.php';
+$bootLoader = APP_PATH.'/lf-boot/app.php';
 
 // Check LAIKA is in Right Directory
-if (!is_file($app_file)) {
-    die("WARNING: Laika is in Wrong Path!\n");
+if (!is_file($bootLoader)) {
+    echo "WARNING: Laika is in Wrong Path!\n";
+    exit(0);
 }
-require_once($app_file);
+require_once($bootLoader);
 
-
-$kernel = new Kernel();
-$kernel->run($argv);
+$console = new Console();
+$console->run($argv);
