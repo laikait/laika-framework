@@ -12,4 +12,7 @@
 /**
  * Define constants here.
  */
-define('ADMIN', 'admin');
+// define('ADMIN', 'admin');
+
+// define('LAIKA_MEMORY_LIMIT', '256M');
+// define('LAIKA_CLI_MEMORY_LIMIT', '256M');
