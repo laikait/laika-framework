@@ -13,10 +13,10 @@
  * Define constants here.
  */
 // DEBUG Status
-define('DEBUG', false);
+define('DEBUG', true);
 
 // define('ADMIN', 'admin');
 
-// define('LAIKA_MEMORY_LIMIT', '256M');
-// define('LAIKA_CLI_MEMORY_LIMIT', '256M');
+// define('MEMORY_LIMIT', '256M');
+// define('CLI_MEMORY_LIMIT', '256M');
 // Define Debug
