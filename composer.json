@@ -5,7 +5,7 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Laika\\App\\": "lf-app/"
+            "App\\": "lf-app/"
         }
     },
     "authors": [
@@ -21,6 +21,11 @@
     "minimum-stability": "stable",
     "require": {
         "php": ">=8.1",
-        "laikait/laika-core": "^2"
+        "laikait/laika-core": "^3"
+    },
+    "scripts": {
+        "post-update-cmd": [
+            "php laika generate:secret"
+        ]
     }
 }
