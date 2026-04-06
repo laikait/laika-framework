@@ -35,7 +35,7 @@ p {
 .footer {
     margin-top: 1rem;
 }
-.footer .copyright, .footer .version {
+.footer .copyright {
     margin-top: 0.5rem;
     font-size: 0.9rem;
     color: #999;
