@@ -20,6 +20,9 @@ return [
     // Start Time
     'start.time'    =>  time(),
 
-    // Csrf Lifetime
-    'csrf.lifetime' => 300,
+    // Memory Limit
+    'memory.limit' => '256M',
+
+    // CLI Memory Limit
+    'cli.memory.limit' => '256M'
 ];

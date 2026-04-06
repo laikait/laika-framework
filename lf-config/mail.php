@@ -14,41 +14,41 @@ declare(strict_types=1);
 defined('APP_PATH') || http_response_code(403).die('403 Direct Access Denied!');
 
 return [
-    // Driver
-    'driver' => 'smtp', // smtp, sendmail, mail
+    /** Driver */
+    'mail.driver' => 'sendmail', // smtp, sendmail, mail, qmail, mail
 
-    // // IS SMTP
-    // 'is.smtp' => true,
+    /** SMTP Debug */
+    // 'mail.debug' = false,
 
-    // SMTP Host
-    'host' => 'laikait.com',
+    /** SMTP CharSet */
+    // 'mail.charset' => 'UTF-8',
 
-    // Smtp Auth
-    'auth' => true,
-
-    // SMTP Username
-    'username' => '',
-
-    // SMTP Password
-    'password' => '',
-
-    // SMTP Secure: 'tls' or 'ssl'
-    'secure' => 'ssl',
-
-    // SMTP Port
-    'port' => 465,
-
-    // SMTP CharSet
-    'charset' => 'UTF-8',
-
-    // From Email
-    'from.email' => '',
+    /** From Email */
+    // 'from.email' => 'user@example.com',
 
     // From Name
-    'from.name' => '',
+    // 'from.name' => 'Laika App',
 
-    // // SMTP Options
-    // 'options' => [
+    /** SMTP Host */
+    // 'smtp.host' => 'localhost',
+
+    /** SMTP Username */
+    // 'smtp.username' => 'username',
+
+    /** SMTP Password */
+    // 'smtp.password' => 'password',
+
+    /** Smtp Auth */
+    // 'smtp.auth' => true,
+
+    /** SMTP Port */
+    // 'smtp.port' => 587,
+
+    /** SMTP Secure */
+    // 'smtp.secure' => 'ssl',
+
+    /** SMTP Options */
+    // 'smtp.options' => [
     //     'ssl' => [
     //         'verify_peer' => false,
     //         'verify_peer_name' => false,
