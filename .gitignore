@@ -3,6 +3,6 @@ lf-logs/
 lf-cache/
 lf-storage/
 lf-config/secret.php
-lf-config/database.php
+.idea/
 composer.phar
 composer.lock
