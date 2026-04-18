@@ -8,7 +8,7 @@
 
 declare(strict_types=1);
 
-namespace App\Provider;
+namespace App\Providers;
 
 use Laika\Core\Relay\RelayProvider;
 
