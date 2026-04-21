@@ -17,6 +17,9 @@ return [
     // Debug
     'debug' => true,
 
+    // Time Zone
+    'time.zone' => 'UTC',
+
     // Start Time
     'start.time'    =>  time(),
 
