@@ -6,9 +6,9 @@
  * License: MIT
  */
 
-// declare(strict_types=1);
+declare(strict_types=1);
 
-namespace Laika\Session\Provider;
+namespace App\Providers;
 
 use Laika\Core\Relay\RelayProvider;
 
@@ -17,5 +17,10 @@ class Example extends RelayProvider
     public function register(): void
     {
         $this->registry->singleton('example', Example::class);
+    }
+
+    public function boot(): void
+    {
+        // Write Your Code Here
     }
 }

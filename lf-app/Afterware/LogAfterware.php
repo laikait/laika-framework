@@ -15,20 +15,20 @@ namespace App\Afterware;
 // Deny Direct Access
 defined('APP_PATH') || http_response_code(403).die('403 Direct Access Denied!');
 
-class LogAfterware
+use Laika\Core\Interfaces\AfterwareInterface;
+
+class LogAfterware implements AfterwareInterface
 {
     /**
-     * @param $next Pass Parameters to Next Afterware
-     * @param $output Controller Output
-     * @param $params Parameters
+     * @param callable $next
+     * @param ?string $output
+     * @param array $params
+     * @return ?string
      */
-    public function terminate($next, $output, $params): string
+    public function terminate(callable $next, ?string $output, array $params): ?string
     {
-        // After controller
-        // Write Code From Here ......
-        // You can modify the Output if needed
-        // Insert Log If Required
+        // Write Code From Here
 
-        return $next($output);
+        return $next($output, $params);
     }
 }

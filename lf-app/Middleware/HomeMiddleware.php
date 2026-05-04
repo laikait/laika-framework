@@ -15,16 +15,16 @@ namespace App\Middleware;
 // Deny Direct Access
 defined('APP_PATH') || http_response_code(403).die('403 Direct Access Denied!');
 
-use Closure;
-use Laika\Session\Relay\Session;
+use Laika\Core\Interfaces\MiddlewareInterface;
 
-class HomeMiddleware
+class HomeMiddleware implements MiddlewareInterface
 {
     /**
-     * @param Closure $next Pass Parameters to Next Middleware or Controller
-     * @param array $params Parameters
+     * @param callable $next
+     * @param array $params
+     * @return ?string
      */
-    public function handle(Closure $next, array $params)
+    public function handle(callable $next, array $params): ?string
     {
         // Start Code From Here....
 
