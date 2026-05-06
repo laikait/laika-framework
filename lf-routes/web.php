@@ -13,6 +13,6 @@ declare(strict_types=1);
 // Deny Direct Access
 defined('APP_PATH') || http_response_code(403).die('403 Direct Access Denied!');
 
-use Laika\Core\App\Router;
+use Laika\Core\App\Http;
 
-Router::get('/', 'HomeController@index')->middleware('HomeMiddleware')->afterware('LogAfterware')->name('home');
+Http::get('/', 'HomeController@index')->middleware('HomeMiddleware')->afterware('LogAfterware')->name('home');
