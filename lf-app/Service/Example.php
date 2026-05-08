@@ -6,19 +6,19 @@
  * License: MIT
  */
 
-declare(strict_types=1);
+// declare(strict_types=1);
 
-namespace App\Service;
+// namespace App\Service;
 
-use Laika\Core\Relay\Relay;
+// use Laika\Core\Relay\Relay;
 
-/**
- * @method static int getOffset()
- */
-class Example extends Relay
-{
-    protected static function getRelayAccessor(): string
-    {
-        return 'example';
-    }
-}
+// /**
+//  * @method static int getOffset()
+//  */
+// class Example extends Relay
+// {
+//     protected static function getRelayAccessor(): string
+//     {
+//         return 'example';
+//     }
+// }

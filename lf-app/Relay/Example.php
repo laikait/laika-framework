@@ -6,22 +6,22 @@
  * License: MIT
  */
 
-declare(strict_types=1);
+// declare(strict_types=1);
 
-namespace App\Relay;
+// namespace App\Relay;
 
-use Laika\Core\Relay\RelayProvider;
-use Laika\Core\App\Template;
+// use Laika\Core\Relay\RelayProvider;
+// use Laika\Core\App\Template;
 
-class Example extends RelayProvider
-{
-    public function register(): void
-    {
-        $this->registry->singleton('example', Template::class);
-    }
+// class Example extends RelayProvider
+// {
+//     public function register(): void
+//     {
+//         $this->registry->singleton('example', Template::class);
+//     }
 
-    public function boot(): void
-    {
-        // Write Your Code Here
-    }
-}
+//     public function boot(): void
+//     {
+//         // Write Your Code Here
+//     }
+// }
