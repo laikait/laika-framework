@@ -34,6 +34,7 @@ class HomeController
         $tpl->assign('welcome', 'Welcome to Laika PHP MVC Framework!');
 
         $tpl->assign('provider', ['docurl' => 'https://laikait.com/docs', 'version' => '2.4.3']);
+
         // load View File
         return $tpl->view('home');
     }
