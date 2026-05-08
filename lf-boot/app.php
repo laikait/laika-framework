@@ -17,6 +17,10 @@ defined('APP_PATH') || define('APP_PATH', dirname(__DIR__));
 // ----------------------- INCLUDES ------------------------- //
 ################################################################
 require_once APP_PATH . '/lf-inc/const.php';
+require __DIR__ . '/provider.php';
+
+// Require Functions
+array_map(fn ($f) => require_once $f, Provider::instance()->functions());
 // ---------------------------------------------------------- //
 
 ################################################################
@@ -24,3 +28,6 @@ require_once APP_PATH . '/lf-inc/const.php';
 ################################################################
 require_once APP_PATH . '/vendor/autoload.php';
 // ---------------------------------------------------------- //
+
+// Require Hooks
+array_map(fn ($h) => require_once $h, Provider::instance()->hooks());
