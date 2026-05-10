@@ -60,7 +60,8 @@ class Provider
      */
     public function hooks(): array
     {
-        return self::$provider->hooks;
+        $app_hooks = glob(APP_PATH . '/lf-hooks/*.hook.php');
+        return array_merge($app_hooks, self::$provider->hooks);
     }
 
     /**
