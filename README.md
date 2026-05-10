@@ -39,8 +39,10 @@ composer create-project laikait/laika-framework
 - [Configure Routes](https://github.com/laikait/laika-framework/wiki/Configuration#routes)
 - [Create Controller](https://github.com/laikait/laika-framework/wiki/Configuration#controller)
 - [Create Middleware](https://github.com/laikait/laika-framework/wiki/Configuration#middleware)
+- [Create Migration](https://github.com/laikait/laika-framework/wiki/Configuration#migration)
 - [Create Model](https://github.com/laikait/laika-framework/wiki/Configuration#model)
 - [Create View](https://github.com/laikait/laika-framework/wiki/Configuration#view)
 - [Using Template Engine](https://github.com/laikait/laika-framework/wiki/Configuration#template-engine)
+- [Laika Console](https://github.com/laikait/laika-framework/wiki/Configuration#console)
 
 Or visit the [Configuration Wiki Page](https://github.com/laikait/laika-framework/wiki/Configuration)
