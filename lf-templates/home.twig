@@ -5,15 +5,15 @@
     <title>{{ title }} - Laika Framework</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon -->
-    <link href="{{ 'asset' | hook('assets/img/icon.png') }}" rel="icon" sizes="32x32">
+    <link href="{{ 'app_asset' | hook('assets/img/icon.png') }}" rel="icon" sizes="32x32">
 
     {{ 'lf_header' | hook }}
 </head>
 <body>
     <div class="container">
-        <img class="logo" src={{ 'asset' | hook('assets/img/logo.png') }}>
+        <img class="logo" src={{ 'app_asset' | hook('img/logo.png') }}>
         <h1>{{ welcome }}</h1>
-        <p>Your Lightweight MMC Framework for Fast and Clean Development.</p>
+        <p>PHP MVC Framework for Fast, Clean & Rest API Development.</p>
         <a class="docs-link" href="{{ provider.docurl }}">Read the Docs</a>
         <div class="footer">
             <div class="copyright">&copy; : {{ '' | date('Y') }}</div>
