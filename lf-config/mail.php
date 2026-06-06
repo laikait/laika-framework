@@ -15,40 +15,40 @@ defined('APP_PATH') || http_response_code(403).die('403 Direct Access Denied!');
 
 return [
     /** Driver */
-    'mail.driver' => 'sendmail', // smtp, sendmail, mail, qmail, mail
+    'driver' => 'sendmail', // smtp, sendmail, mail, qmail, mail
 
     /** SMTP Debug */
-    // 'mail.debug' = false,
+    // 'debug' = false,
 
     /** SMTP CharSet */
-    // 'mail.charset' => 'UTF-8',
+    // 'charset' => 'UTF-8',
 
     /** From Email */
-    // 'from.email' => 'user@example.com',
+    // 'from_email' => 'user@example.com',
 
     // From Name
-    // 'from.name' => 'Laika App',
+    // 'from_name' => 'Laika App',
 
     /** SMTP Host */
-    // 'smtp.host' => 'localhost',
+    // 'host' => 'localhost',
 
     /** SMTP Username */
-    // 'smtp.username' => 'username',
+    // 'username' => 'username',
 
     /** SMTP Password */
-    // 'smtp.password' => 'password',
+    // 'password' => 'password',
 
     /** Smtp Auth */
-    // 'smtp.auth' => true,
+    // 'auth' => true,
 
     /** SMTP Port */
-    // 'smtp.port' => 587,
+    // 'port' => 587,
 
     /** SMTP Secure */
-    // 'smtp.secure' => 'ssl',
+    // 'secure' => 'ssl',
 
     /** SMTP Options */
-    // 'smtp.options' => [
+    // 'options' => [
     //     'ssl' => [
     //         'verify_peer' => false,
     //         'verify_peer_name' => false,
