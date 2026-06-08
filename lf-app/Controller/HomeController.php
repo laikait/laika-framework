@@ -21,9 +21,6 @@ use Laika\Core\App\Template;
 
 class HomeController
 {
-    /**
-     * Args contains Request Object and Other Route Parameters
-     */
     public function index()
     {
         $tpl = new Template();
@@ -33,7 +30,7 @@ class HomeController
         // Assign Data
         $tpl->assign('welcome', 'Welcome to Laika PHP MVC Framework!');
 
-        $tpl->assign('provider', ['docurl' => 'https://laikait.com/docs', 'version' => '2.4.3']);
+        $tpl->assign('provider', ['docurl' => 'https://laikait.com/docs']);
 
         // load View File
         return $tpl->view('home');

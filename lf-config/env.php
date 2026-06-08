@@ -18,11 +18,5 @@ return [
     'debug' => true,
 
     // Start Time
-    'start.time'    =>  time(),
-
-    // Memory Limit
-    'memory.limit' => '256M',
-
-    // CLI Memory Limit
-    'cli.memory.limit' => '256M'
+    'start_time'    =>  time(),
 ];
