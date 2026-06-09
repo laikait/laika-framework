@@ -14,8 +14,8 @@ defined('APP_PATH') || http_response_code(403).die('403 Direct Access Denied!');
 // Define Debug
 define('DEBUG', true);
 
-// Define LOG
-define('DB_LOG', false); // Must Run 'php laika migrate' before true
+// Define ACTIVITY_LOG
+define('ACTIVITY_LOG', false); // Required Database Conection
 
 // Memory Limits
 define('MEMORY_LIMIT', '256M');
