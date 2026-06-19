@@ -68,12 +68,39 @@ class Loader
     }
 
     /**
-     * Get Migration Files
+     * Get Migration Classes
      * @return array
      */
     public static function migrations(): array
     {
         return self::instance()->migrations;
+    }
+
+    /**
+     * Get Models Classes
+     * @return array
+     */
+    public static function models(): array
+    {
+        return self::instance()->models;
+    }
+
+    /**
+     * Get Middlewares Classes
+     * @return array
+     */
+    public static function middlewares(): array
+    {
+        return self::instance()->middlewares;
+    }
+
+    /**
+     * Get Afterwares Classes
+     * @return array
+     */
+    public static function afterwares(): array
+    {
+        return self::instance()->afterwares;
     }
 
     /**
