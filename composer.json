@@ -25,7 +25,7 @@
     },
     "scripts": {
         "post-update-cmd": [
-            "php laika fix:secret"
+            "php laika fix:secret -b 32"
         ]
     }
 }
