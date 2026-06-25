@@ -13,7 +13,8 @@ declare(strict_types=1);
 // Deny Direct Access
 defined('APP_PATH') || http_response_code(403).die('403 Direct Access Denied!');
 
-// use Laika\Core\App\Router;
+use Laika\Core\App\Http;
+use Laika\Service\Response;
 
 // // Start Register API Http From Here
 // // ###### Sample: #######
@@ -23,12 +24,12 @@ defined('APP_PATH') || http_response_code(403).die('403 Direct Access Denied!');
 // // ##### Post Request #####
 // // Http::post('/sample', 'SampleController@index');
 
-// Router::get('/status', function() {
-//     header('Content-Type: application/json');
-//     echo json_encode(['status' => 'API is Working With Get Method']);
-// });
+Http::get('/status', function() {
+    Response::setContentType('application/json');
+    return json_encode(['status' => 'API is Working With Put Method']);
+});
 
 // Router::put('/status', function() {
-//     header('Content-Type: application/json');
+//     Response::setContentType('application/json');
 //     echo json_encode(['status' => 'API is Working With Put Method']);
 // });
