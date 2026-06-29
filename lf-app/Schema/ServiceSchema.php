@@ -11,15 +11,13 @@
 declare(strict_types=1);
 
 // Namespace
-namespace App\Migration;
+namespace App\Schema;
 
 // Deny Direct Access
 defined('APP_PATH') || http_response_code(403).die('403 Direct Access Denied!');
 
-use Laika\Core\Exceptions\MigrationException;
 use Laika\Model\Schema\Blueprint;
 use Laika\Model\Schema\Schema;
-use App\Model\ServiceModel;
 
 class ServiceSchema
 {
@@ -56,7 +54,7 @@ class ServiceSchema
         //         ];
         //         $m->insert($default);
         //     } catch (\Throwable $e) {
-        //         throw new MigrationException("Unable to Insert Into 'services'. {$e->getMessage()}", (int) $e->getCode(), $e);
+        //         throw new SchemaException("Unable to Insert Into 'services'. {$e->getMessage()}", (int) $e->getCode(), $e);
         //     }
         // });
         return;
