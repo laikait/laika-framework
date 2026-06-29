@@ -21,28 +21,28 @@ if (!defined('DS')) define('DS', DIRECTORY_SEPARATOR);
  */
 class Loader
 {
-    /** @var ?Loader $instance */
+    /** @var ?Loader Instance */
     protected static ?Loader $instance = null;
 
-    /** @var array $functions */
+    /** @var array Functions */
     protected array $functions = []; // All Are Files
 
-    /** @var array $hooks */
+    /** @var array Hooks */
     protected array $hooks = []; // All Are Files
 
-    /** @var array $services */
+    /** @var array Services */
     protected array $services = []; // All Are Classes
 
-    /** @var array $migrations */
-    protected array $migrations = []; // All Are Classes
+    /** @var array Schemas */
+    protected array $schemas = []; // All Are Classes
 
-    /** @var array $models */
+    /** @var array Models */
     protected array $models = []; // All Are Classes
 
-    /** @var array $middlewares */
+    /** @var array Middlewares */
     protected array $middlewares = []; // All Are Classes
 
-    /** @var array $afterwares */
+    /** @var array Afterwares */
     protected array $afterwares = []; // All Are Classes
 
     // ===============================================================
@@ -68,12 +68,12 @@ class Loader
     }
 
     /**
-     * Get Migration Classes
+     * Get Schema Classes
      * @return array
      */
-    public static function migrations(): array
+    public static function schemas(): array
     {
-        return self::instance()->migrations;
+        return self::instance()->schemas;
     }
 
     /**
@@ -135,12 +135,12 @@ class Loader
 
             // Generate Support Classes
             foreach ($psrs as $pk => $pv) {
-                // Migrations
-                if (isset($package['extra']['laika']['migration']) && $package['extra']['laika']['migration']) {
-                    $md = $base . DS . trim($pv, '/\\') . DS . 'Migration';
+                // Schemas
+                if (isset($package['extra']['laika']['schema']) && $package['extra']['laika']['schema']) {
+                    $md = $base . DS . trim($pv, '/\\') . DS . 'Schema';
                     if (is_dir($md)) {
                         foreach (glob($md . DS . '*.php') as $mf) {
-                            array_push($this->migrations, $pk . "Migration\\" . pathinfo($mf, PATHINFO_FILENAME));
+                            array_push($this->schemas, $pk . "Schema\\" . pathinfo($mf, PATHINFO_FILENAME));
                         }
                     }
                 }
