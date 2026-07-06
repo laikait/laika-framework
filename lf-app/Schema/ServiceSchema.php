@@ -18,15 +18,15 @@ defined('APP_PATH') || http_response_code(403).die('403 Direct Access Denied!');
 
 use Laika\Model\Schema\Blueprint;
 use Laika\Model\Schema\Schema;
+use Laika\Core\Abstracts\SchemaAbstract;
 
-class ServiceSchema
+class ServiceSchema extends SchemaAbstract
 {
-    /**
-     * Migrate Table
-     */
-    public function migrate()
+    protected string $table = 'services';
+
+    public function up(): void
     {
-        Schema::on()->createIfNotExists('services', function (Blueprint $t) {
+        Schema::on()->createIfNotExists($this->table, function (Blueprint $t) {
             $t->id('sid');
             $t->uid();
             $t->string('name');
@@ -39,24 +39,5 @@ class ServiceSchema
         });
     }
 
-    /**
-     * Default Values to Insert
-     * @return void
-     */
-    public function default(): void
-    {
-        // $model = new ServiceModel();
-        // $model->transaction(function (ServiceModel $m) {
-        //     try {
-        //         $default = [
-        //             'uid' => $m->uid(),
-        //             'status' => 'active'
-        //         ];
-        //         $m->insert($default);
-        //     } catch (\Throwable $e) {
-        //         throw new SchemaException("Unable to Insert Into 'services'. {$e->getMessage()}", (int) $e->getCode(), $e);
-        //     }
-        // });
-        return;
-    }
+    public function seed(): void {}
 }

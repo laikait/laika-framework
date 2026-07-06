@@ -6,3 +6,7 @@ lf-config/secret.php
 .idea/
 composer.phar
 composer.lock
+laika
+laika.bat
+jp.php
+jp.php.bat
