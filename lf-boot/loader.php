@@ -68,42 +68,6 @@ class Loader
     }
 
     /**
-     * Get Schema Classes
-     * @return array
-     */
-    public static function schemas(): array
-    {
-        return self::instance()->schemas;
-    }
-
-    /**
-     * Get Models Classes
-     * @return array
-     */
-    public static function models(): array
-    {
-        return self::instance()->models;
-    }
-
-    /**
-     * Get Middlewares Classes
-     * @return array
-     */
-    public static function middlewares(): array
-    {
-        return self::instance()->middlewares;
-    }
-
-    /**
-     * Get Afterwares Classes
-     * @return array
-     */
-    public static function afterwares(): array
-    {
-        return self::instance()->afterwares;
-    }
-
-    /**
      * Get Provider Services
      * @return array
      */

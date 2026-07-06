@@ -14,6 +14,8 @@
 
 declare(strict_types=1);
 
+use Laika\Service\Infra;
+
 #################################################################
 // ---------------------APP PATH CONSTANT--------------------- //
 #################################################################
@@ -23,10 +25,7 @@ defined('APP_PATH') || define('APP_PATH', dirname(__DIR__));
 // ----------------------- INCLUDES ------------------------- //
 ################################################################
 require_once APP_PATH . '/lf-inc/const.php';
-require __DIR__ . '/loader.php';
 
-// Require Functions
-array_map(fn ($f) => require_once $f, Loader::functions());
 // ---------------------------------------------------------- //
 
 ################################################################
@@ -35,5 +34,8 @@ array_map(fn ($f) => require_once $f, Loader::functions());
 require_once APP_PATH . '/vendor/autoload.php';
 // ---------------------------------------------------------- //
 
-// Require Hooks
-array_map(fn ($h) => require_once $h, Loader::hooks());
+################################################################
+// ----------------- LOAD FUNCTIONS & HOOKS ----------------- //
+################################################################
+foreach (Infra::getFunctionFiles() as $file) require_once $file;
+foreach (Infra::getHookFiles() as $file) require_once $file;
