@@ -22,10 +22,5 @@
     "require": {
         "php": ">=8.1",
         "laikait/laika-core": "^4"
-    },
-    "scripts": {
-        "post-update-cmd": [
-            "php laika fix:secret -b 32"
-        ]
     }
 }
