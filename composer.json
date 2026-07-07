@@ -25,5 +25,10 @@
     },
     "config": {
         "bin-dir": "."
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "php laika fix:secret --byte=32"
+        ]
     }
 }
