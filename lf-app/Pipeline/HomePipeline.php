@@ -15,19 +15,19 @@ namespace App\Middleware;
 // Deny Direct Access
 defined('APP_PATH') || http_response_code(403).die('403 Direct Access Denied!');
 
-use Laika\Core\Interfaces\MiddlewareInterface;
+use Laika\Core\Interfaces\PipelineInterface;
 
-class HomeMiddleware implements MiddlewareInterface
+class HomePipeline implements PipelineInterface
 {
     /**
      * @param callable $next
      * @param array $params
      * @return ?string
      */
-    public function handle(callable $next, array $params): ?string
+    public function handle(callable $next, array &$params)
     {
         // Start Code From Here....
 
-        return $next($params);
+        return $next();
     }
 }
