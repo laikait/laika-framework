@@ -12,14 +12,14 @@
 declare(strict_types=1);
 
 // Namespace
-namespace App\Response;
+namespace App\Controller;
 
 // Deny Direct Access
 defined('APP_PATH') || http_response_code(403) . die('403 Direct Access Denied!');
 
 use Laika\Core\App\Template;
 
-class Home
+class HomeController
 {
     public function index()
     {

@@ -10,25 +10,24 @@
 
 declare(strict_types=1);
 
-namespace App\Afterware;
+namespace App\Filter;
 
 // Deny Direct Access
 defined('APP_PATH') || http_response_code(403).die('403 Direct Access Denied!');
 
-use Laika\Core\Interfaces\AfterwareInterface;
+use Laika\Route\Interfaces\FilterInterface;
 
-class LogAfterware implements AfterwareInterface
+class LogFilter implements FilterInterface
 {
     /**
      * @param callable $next
-     * @param ?string $output
+     * @param mixed $response
      * @param array $params
-     * @return ?string
      */
-    public function terminate(callable $next, ?string $output, array $params): ?string
+    public function terminate(callable $next, ?string $response, array &$params): ?string
     {
         // Write Code From Here
 
-        return $next($output, $params);
+        return $next($response);
     }
 }

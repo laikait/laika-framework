@@ -10,12 +10,12 @@
 
 declare(strict_types=1);
 
-namespace App\Middleware;
+namespace App\Pipeline;
 
 // Deny Direct Access
 defined('APP_PATH') || http_response_code(403).die('403 Direct Access Denied!');
 
-use Laika\Core\Interfaces\PipelineInterface;
+use Laika\Route\Interfaces\PipelineInterface;
 
 class HomePipeline implements PipelineInterface
 {
@@ -24,7 +24,7 @@ class HomePipeline implements PipelineInterface
      * @param array $params
      * @return ?string
      */
-    public function handle(callable $next, array &$params)
+    public function handle(callable $next, array &$params): ?string
     {
         // Start Code From Here....
 
