@@ -11,23 +11,19 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      CHANNEL: CLI
+      ARTIFACT: laika-cli-${{ github.ref_name }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      # Detect Release Channel
-      - name: Define Release Channel and Artifact Name
-        id: channel
-        run: |
-          echo "CHANNEL=CLI" >> $GITHUB_ENV
-          echo "ARTIFACT=laika-core-${{ github.ref_name }}" >> $GITHUB_ENV
-
       # Prepare Build Artifact
       - name: Prepare release artifact
         run: |
           mkdir build
-          cp -r src composer.json LICENSE README.md build/
+          cp -r composer.json LICENSE README.md build/
           echo "${{ github.run_number }}" > build/VERSION
           cd build && zip -r ../${{ env.ARTIFACT }}.zip .
 
