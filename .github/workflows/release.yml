@@ -1,0 +1,74 @@
+name: Version Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    name: Build & Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      # Detect Release Channel
+      - name: Define Release Channel and Artifact Name
+        id: channel
+        run: |
+          echo "CHANNEL=CLI" >> $GITHUB_ENV
+          echo "ARTIFACT=laika-core-${{ github.ref_name }}" >> $GITHUB_ENV
+
+      # Prepare Build Artifact
+      - name: Prepare release artifact
+        run: |
+          mkdir build
+          cp -r src composer.json LICENSE README.md build/
+          echo "${{ github.run_number }}" > build/VERSION
+          cd build && zip -r ../${{ env.ARTIFACT }}.zip .
+
+      # Generate Checksum
+      - name: Generate artifact checksum
+        run: sha256sum ${{ env.ARTIFACT }}.zip > ${{ env.ARTIFACT }}.zip.sha256
+
+      # Upload Artifact
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.ARTIFACT }}
+          path: |
+            ${{ env.ARTIFACT }}.zip
+            ${{ env.ARTIFACT }}.zip.sha256
+          retention-days: 30
+
+      # Create GitHub Release
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3.0.1
+        with:
+          draft: false
+          overwrite_files: true
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: |
+            🚀 **${{ github.ref_name }} Release**
+
+            **Tag:** ${{ github.ref_name }}
+            **Commit:** ${{ github.sha }}
+            **Build #:** ${{ github.run_number }}
+
+            **Artifacts:**
+            - `${{ env.ARTIFACT }}.zip`
+            - `${{ env.ARTIFACT }}.zip.sha256`
+
+            ---
+            ⚙️ Released via CI Pipeline  
+            🧩 Channel: ${{ env.CHANNEL }}
+          files: |
+            ${{ env.ARTIFACT }}.zip
+            ${{ env.ARTIFACT }}.zip.sha256
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
