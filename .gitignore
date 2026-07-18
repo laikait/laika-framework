@@ -2,11 +2,10 @@ vendor/
 lf-logs/
 lf-cache/
 lf-storage/
-lf-config/secret.php
 .idea/
 composer.phar
 composer.lock
 laika
-laika.bat
 jp.php
+laika.bat
 jp.php.bat
