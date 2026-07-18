@@ -4,30 +4,30 @@
  * Author: Showket Ahmed
  * Email: riyadhtayf@gmail.com
  * License: MIT
- * This file is part of the Laika PHP MVC Framework.
+ * This file is part of the Laika Framework.
  * For the full copyright and license information, please view the LICENSE file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace App\Middleware;
+namespace App\Filter;
 
 // Deny Direct Access
 defined('APP_PATH') || http_response_code(403).die('403 Direct Access Denied!');
 
-use Laika\Core\Interfaces\MiddlewareInterface;
+use Laika\Route\Interfaces\FilterInterface;
 
-class HomeMiddleware implements MiddlewareInterface
+class LogFilter implements FilterInterface
 {
     /**
      * @param callable $next
+     * @param mixed $response
      * @param array $params
-     * @return ?string
      */
-    public function handle(callable $next, array $params): ?string
+    public function terminate(callable $next, ?string $response, array &$params): ?string
     {
-        // Start Code From Here....
+        // Write Code From Here
 
-        return $next($params);
+        return $next($response);
     }
 }
