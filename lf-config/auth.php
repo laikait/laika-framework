@@ -13,11 +13,15 @@ declare(strict_types=1);
 // Deny Direct Access
 defined('APP_PATH') || http_response_code(403).die('403 Direct Access Denied!');
 
+use App\Model\UsersModel;
+use App\Model\StaffsModel;
+
 return [
     'guards' => [
-        'web'   =>  ['driver' => 'session', 'provider' => 'users'],
-        'admin' =>  ['driver' => 'session', 'provider' => 'admins'],
-        'api'   =>  ['driver' => 'token'],
+        'web'       =>  ['driver' => 'session', 'provider' => 'web'],
+        'remember'  =>  ['driver' => 'cookie',  'provider' => 'remember'],
+        'admin'     =>  ['driver' => 'token',   'provider' => StaffsModel::class],
+        'user'      =>  ['driver' => 'token',   'provider' => UsersModel::class],
     ],
     'oauth' => [
         'google' => [
