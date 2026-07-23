@@ -2,6 +2,7 @@ vendor/
 lf-logs/
 lf-cache/
 lf-storage/
+lf-config/auth.php
 .idea/
 composer.phar
 composer.lock
