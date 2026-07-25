@@ -12,16 +12,16 @@ declare(strict_types=1);
 
 namespace App\Schema;
 
-use App\Model\UsersModel;
+use App\Model\StaffRoles;
 use Laika\Model\Schema\Schema;
 use Laika\Model\Schema\Blueprint;
 use Laika\Core\Abstracts\SchemaAbstract;
 use Laika\Core\Exceptions\SchemaException;
 
-class UsersModelSchema extends SchemaAbstract
+class StaffRolesSchema extends SchemaAbstract
 {
     /** @var string Database Table Name */
-    protected string $table = 'users';
+    protected string $table = 'staff_roles';
 
     /** @var string Database Connection Name */
     protected string $connection = 'default';
@@ -29,18 +29,12 @@ class UsersModelSchema extends SchemaAbstract
     public function up(): void
     {
         Schema::on($this->connection)->createIfNotExists($this->table, function (Blueprint $t) {
-            $t->bigId('id'); // Auto Primary Column
+            $t->id('rid'); // Auto Primary Column
             $t->string('uid'); // Auto Unique Column
-            $t->string('email');
-            $t->string('first_name');
-            $t->string('last_name');
-            $t->string('username')->nullable()->default(NULL);
-            $t->string('password')->nullable()->default(NULl);
-            $t->enum('is_active', ['yes', 'no'])->default('no');
-            $t->timestamp('deleted_at')->nullable()->default(NULL);
+            $t->string('role_name')->comment('Example: superadmin');
+            $t->json('permissions')->comment('JSON Data');
 
-            $t->unique('email');
-            $t->index('username');
+            $t->unique('role_name');
         });
     }
 }

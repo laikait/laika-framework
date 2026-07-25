@@ -29,13 +29,19 @@ class StaffsModelSchema extends SchemaAbstract
     public function up(): void
     {
         Schema::on($this->connection)->createIfNotExists($this->table, function (Blueprint $t) {
-            $t->bigId('id');
-            $t->string('uid');
-            $t->timestamps();
-            $t->enum('deleted', ['yes', 'no'])->default('no');
-            $t->timestamp('deleted_at')->nullable();
+            $t->bigId('id'); // Auto Primary Column
+            $t->string('uid'); // Auto Unique Column
+            $t->string('email');
+            $t->string('first_name');
+            $t->string('last_name');
+            $t->string('username')->nullable()->default(NULL);
+            $t->string('password')->nullable()->default(NULl);
+            $t->integer('role_relid')->comment('roles -> rid');
+            $t->enum('is_active', ['yes', 'no'])->default('no');
+            $t->timestamp('deleted_at')->nullable()->default(NULL);
 
-            $t->index('deleted');
+            $t->unique('email');
+            $t->unique('username');
         });
     }
 }
