@@ -50,8 +50,8 @@ Url::get('/dashboard', function () {
 | Return value | Chain continues? | Controller runs? | Output |
 |---|---|---|---|
 | `$next()` | Yes | Yes (if last pipeline) | Controller's return value |
-| `$next(false)` | No | No | Nothing / null |
-| `'any text'` | No | No | The returned string itself |
+| `$next(false)` | No | No | Controller's return value |
+| `'anytext'` | No | No | Ignore Controller and returne string itself |
 
 ## Rules
 - Implements `Laika\Route\Interfaces\PipelineInterface`.
