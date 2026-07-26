@@ -13,17 +13,17 @@ jobs:
       contents: write
     env:
       CHANNEL: CLI
-      ARTIFACT: laika-cli-${{ github.ref_name }}
+      ARTIFACT: laika-framework-${{ github.ref_name }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
       # Prepare Build Artifact
       - name: Prepare release artifact
         run: |
           mkdir build
-          cp -r composer.json LICENSE README.md build/
+          cp -r index.php assets docs lf-app lf-boot lf-cache lf-config lf-hooks lf-inc lf-lang lf-routes template .gitignore .htaccess composer.json laika nginx.conf LICENSE README.md build/
           echo "${{ github.run_number }}" > build/VERSION
           cd build && zip -r ../${{ env.ARTIFACT }}.zip .
 
@@ -33,7 +33,7 @@ jobs:
 
       # Upload Artifact
       - name: Upload build artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: ${{ env.ARTIFACT }}
           path: |
