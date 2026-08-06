@@ -23,6 +23,11 @@
         "php": ">=8.1",
         "laikait/laika-core": "^4"
     },
+    "config": {
+        "allow-plugins": {
+            "laikait/laika-cli": true
+        }
+    },
     "scripts": {
         "post-autoload-dump": [
             "php laika fix:secret --byte=32",
