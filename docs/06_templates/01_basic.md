@@ -35,6 +35,8 @@ class HomeController
 
 ```php
 $tpl->assign('title', 'Dashboard');
+$user['id'] = 1;
+$user['name'] = 'Showket';
 $tpl->assign(['title' => 'Dashboard', 'user' => $user]);
 ```
 
