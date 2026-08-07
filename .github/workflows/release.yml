@@ -1,9 +1,11 @@
-name: Version Release
+name: Laika Framework Version Release
 
 on:
   push:
     tags:
       - 'v*.*.*'
+
+  workflow_dispatch:
 
 jobs:
   release:

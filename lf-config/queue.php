@@ -14,6 +14,27 @@ declare(strict_types=1);
 defined('APP_PATH') || http_response_code(403).die('403 Direct Access Denied!');
 
 return [
+    // Which queue backend the `worker` executable runs against:
+    // 'database' | 'redis' | 'json'.
+    'driver' => 'json',
+
+    // Connection name (see lf-config/database.php) used when 'driver' (or
+    // 'failed_driver') is 'database'.
+    'connection' => 'default',
+
+    // Failed-job provider: 'database' | 'json'. null (default) mirrors
+    // 'driver' when it's 'database', and falls back to 'json' otherwise —
+    // there's no Redis-backed failed-job provider, so a 'redis' queue
+    // driver still needs an explicit database/json choice here.
+    'failed_driver' => null,
+
+    // The 'redis' driver connects using lf-config/redis.php as-is (host,
+    // port, password) — no separate connection to configure here.
+
+    // The 'json' driver has no config either — it always uses
+    // lf-storage/queues/jobs.json (and lf-storage/queues/failed.json for
+    // the matching failed-job provider).
+
     // Fully-qualified Job subclass names bin/worker is allowed to
     // unserialize() from the queue. See Laika\Queue\Abstracts\Job::registerTrustedClasses().
     // Example: [\App\Jobs\SendWelcomeEmail::class, \App\Jobs\ChargeCard::class]
