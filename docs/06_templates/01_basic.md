@@ -35,8 +35,6 @@ class HomeController
 
 ```php
 $tpl->assign('title', 'Dashboard');
-$user['id'] = 1;
-$user['name'] = 'Showket';
 $tpl->assign(['title' => 'Dashboard', 'user' => $user]);
 ```
 
@@ -61,9 +59,11 @@ return $tpl->view('static-page'); // resolves template/static-page.html
 $tpl->addFilter('currency', fn (float $v) => number_format($v, 2) . ' BDT');
 ```
 
+{% raw %}
 ```twig
 {{ order.total|currency }}
 ```
+{% endraw %}
 
 ## Variables Available in Every Template
 
@@ -73,7 +73,7 @@ $tpl->addFilter('currency', fn (float $v) => number_format($v, 2) . ' BDT');
 |---|---|
 | `local` | Current locale (`Laika\Service\Local::get()`) |
 | `page` | `{ number, next, previous }` — current pagination state |
-| `input` | Access any request input by property/method: `{{ input.email }}` |
+| `input` | Access any request input by property/method: {% raw %}`{{ input.email }}`{% endraw %} |
 | `errors` | Form validation errors (`Laika\Service\Request::errors()`) |
 | `visitor` | Visitor info (IP, browser, user agent, ...) |
 | `context` | App-wide context data (`Laika\Service\Context::get()`) |
@@ -90,10 +90,12 @@ $tpl->addFilter('currency', fn (float $v) => number_format($v, 2) . ' BDT');
 | `\|asset` | Resolve an asset path |
 | `\|context('key')` | `context_get('key')` |
 
+{% raw %}
 ```twig
 <a href="{{ 'users.show'|named({'id': user.id}) }}">{{ user.name }}</a>
 <link rel="stylesheet" href="{{ 'assets/css/style.css'|asset }}">
 ```
+{% endraw %}
 
 ## Registering Assets
 
