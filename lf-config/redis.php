@@ -23,7 +23,7 @@ return [
     'port'      =>  6379,
 
     // Prefix
-    'prefix'    =>  'cbm',
+    'prefix'    =>  'lf',
     
     // Password
     'password'  =>  ''

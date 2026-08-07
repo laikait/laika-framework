@@ -1,21 +1,25 @@
-# Creating a Filter
+# Filters
+
+A filter is middleware that runs **after** the controller — useful for logging, response shaping, or auditing once you already have a response.
 
 ## Location
+
 `App\Filter` namespace, files in `lf-app/Filter`.
 
-## Create Filter Using CLI
+## Create via CLI
 
 ```bash
-php laika make:filter LogFilter
+php laika make:filter LogAccess
 ```
 
 ## Sample
+
 ```php
 namespace App\Filter;
 
 use Laika\Route\Interfaces\FilterInterface;
 
-class LogFilter implements FilterInterface
+class LogAccess implements FilterInterface
 {
     /**
      * @param callable $next
@@ -32,17 +36,49 @@ class LogFilter implements FilterInterface
 ```
 
 ## Register
+
 ```php
 Url::get('/', function () {
     // controller logic
-})->filter(LogFilter::class);
+})->filter(LogAccess::class);
 ```
 
 ## Multiple Filters
+
 ```php
 Url::get('/dashboard', function () {
     // controller logic
-})->filter([LogFilter::class, AuditFilter::class]);
+})->filter([LogAccess::class, AuditFilter::class]);
+```
+
+## Passing Config Args
+
+```php
+Url::get('/reports', 'ReportController@index')->filter(['LogAccess|level=info']);
+```
+
+```php
+namespace App\Filter;
+
+use Laika\Route\Interfaces\FilterInterface;
+
+class LogAccess implements FilterInterface
+{
+    public function terminate(callable $next, ?string $response, array &$params): ?string
+    {
+        error_log('level=' . ($params['level'] ?? 'default'));
+
+        return $next($response);
+    }
+}
+```
+
+## Global Filters
+
+Apply a filter to every route in the application:
+
+```php
+Url::globalFilter(['LogResponse']);
 ```
 
 ## Return Behavior
@@ -51,11 +87,23 @@ Url::get('/dashboard', function () {
 |---|---|---|
 | `$next($response)` | Yes | Original response passed forward |
 | `$next($response, false)` | No | Original response passed forward |
-| `$next('anytext')` | Yes | Controller's response is replaced with 'anytext' |
-| `$next('anytext', false)` | No | Controller's response is replaced with 'anytext' |
+| `$next('anytext')` | Yes | Controller's response is replaced with `'anytext'` |
+| `$next('anytext', false)` | No | Controller's response is replaced with `'anytext'` |
 
 ## Rules
+
 - Implements `Laika\Route\Interfaces\FilterInterface`.
 - `terminate(callable $next, ?string $response, array &$params): ?string`
-- `$params` passed by reference — mutate to pass data forward.
+- `$params` — passed by reference, same array threaded through pipelines and the controller.
 - Runs after the controller, in the order registered.
+
+## CLI Reference
+
+| Command | Description |
+|---|---|
+| `php laika make:filter <name>` | Create a filter class |
+| `php laika list:filter` | List registered filter classes |
+| `php laika remove:filter <name>` | Delete a filter class |
+| `php laika rename:filter --old=<name> --new=<name>` | Rename a filter class |
+
+See [Pipelines](../03_pipeline/01_basic.md) for pre-controller middleware.

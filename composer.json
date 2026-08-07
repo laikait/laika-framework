@@ -25,7 +25,8 @@
     },
     "config": {
         "allow-plugins": {
-            "laikait/laika-cli": true
+            "laikait/laika-cli": true,
+            "laikait/laika-queue": true
         }
     },
     "scripts": {

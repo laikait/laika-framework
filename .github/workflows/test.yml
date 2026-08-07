@@ -1,0 +1,44 @@
+name: Laika Framework Test Suite
+
+on:
+  push:
+    branches:
+      - beta
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  ########################################################
+  # VALIDATE & LINT
+  ########################################################
+  test:
+    name: Validate PHP ${{ matrix.php-version }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ['8.1','8.2','8.3','8.4','8.5']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          tools: composer
+
+      # Validate composer.json
+      - name: Validate composer.json
+        run: composer validate --no-check-publish
+
+      # Lint PHP Syntax
+      - name: Lint PHP syntax
+        run: |
+          find index.php lf-app lf-boot lf-cache lf-config lf-hooks lf-inc lf-lang lf-routes template -name '*.php' -print0 | xargs -0 -n1 php -l
+          php -l laika
