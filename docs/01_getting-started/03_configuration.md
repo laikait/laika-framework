@@ -92,10 +92,9 @@ return [
 
 ```php
 return [
-    'driver'              => 'json',      // 'database' | 'redis' | 'json'
-    'connection'          => 'default',   // used when driver/failed_driver is 'database'
-    'failed_driver'       => null,        // 'database' | 'json' — defaults per 'driver', see below
-    'trusted_job_classes' => [],          // Job classes the worker is allowed to unserialize()
+    'driver'        => 'json',    // 'database' | 'redis' | 'json'
+    'connection'    => 'default', // used when driver/failed_driver is 'database'
+    'failed_driver' => null,      // 'database' | 'json' — defaults per 'driver', see below
 ];
 ```
 

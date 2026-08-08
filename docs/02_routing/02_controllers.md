@@ -3,7 +3,7 @@
 Controllers live in `lf-app/Controller`, namespace `App\Controller`. A controller is a plain class — no base class to extend.
 
 ```bash
-php laika make:controller UserController --method=index
+php laika controller:make UserController --method=index
 ```
 
 ## Basic Controller
@@ -115,7 +115,7 @@ Pipelines and filters wrap the controller call — see [Routing](01_basic.md#pip
 
 | Command | Description |
 |---|---|
-| `php laika make:controller <name> [--method=index]` | Create a controller class |
-| `php laika list:controller` | List registered controller classes |
-| `php laika remove:controller <name>` | Delete a controller class |
-| `php laika rename:controller --old=<name> --new=<name>` | Rename a controller class and its file |
+| `php laika controller:make <name> [--method=index]` | Create a controller class |
+| `php laika controller:list` | List registered controller classes |
+| `php laika controller:remove <name>` | Delete a controller class |
+| `php laika controller:rename --old=<name> --new=<name>` | Rename a controller class and its file |

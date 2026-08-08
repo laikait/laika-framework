@@ -12,7 +12,7 @@ Two directories work together:
 ## Create via CLI
 
 ```bash
-php laika make:service --name=Mailer --class=App\\Model\\MailerModel
+php laika service:make --name=Mailer --class=App\\Model\\MailerModel
 ```
 
 This generates both halves at once:
@@ -102,15 +102,15 @@ $mailer = Relay::getRegistry()->make('mailer.accessor');
 ## Listing Registered Relays
 
 ```bash
-php laika list:relay
+php laika relay:list
 ```
 
 ## CLI Reference
 
 | Command | Description |
 |---|---|
-| `php laika make:service --name=<ServiceClass> --class=<RelayClass>` | Create a service facade + its provider |
-| `php laika remove:service <name>` | Delete a service and its provider |
-| `php laika list:relay` | List registered Relay classes |
+| `php laika service:make --name=<ServiceClass> --class=<RelayClass>` | Create a service facade + its provider |
+| `php laika service:remove <name>` | Delete a service and its provider |
+| `php laika relay:list` | List registered Relay classes |
 
 For method chaining, swapping instances at runtime, and mocking a `Relay` in tests, see the [laika-relay README](https://github.com/laikait/laika-relay#method-chaining).

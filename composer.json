@@ -31,7 +31,7 @@
     },
     "scripts": {
         "post-autoload-dump": [
-            "php laika fix:secret --byte=32",
+            "php laika secret:fix --byte=32",
             "php laika app:sync"
         ]
     }

@@ -14,10 +14,9 @@ Configured in [`lf-config/queue.php`](../01_getting-started/03_configuration.md#
 
 ```php
 return [
-    'driver'              => 'json', // 'json' (default) | 'database' | 'redis'
-    'connection'          => 'default',
-    'failed_driver'       => null,   // 'database' | 'json' — defaults per 'driver'
-    'trusted_job_classes' => [],
+    'driver'        => 'json', // 'json' (default) | 'database' | 'redis'
+    'connection'    => 'default',
+    'failed_driver' => null,   // 'database' | 'json' — defaults per 'driver'
 ];
 ```
 
@@ -67,19 +66,13 @@ $driver = new DatabaseDriver('default'); // a connection NAME, not a PDO instanc
 $driver->push(new SendWelcomeEmail($userId), queue: 'emails', delay: 10);
 ```
 
-## Trusted Job Classes (required)
+## Trusted Job Classes (automatic)
 
-Job payloads are restored with PHP's `unserialize()`. To prevent PHP Object Injection, only classes explicitly listed in `trusted_job_classes` are allowed to be unserialized — the `worker` executable reads this list from `lf-config/queue.php` automatically:
+Job payloads are restored with PHP's `unserialize()`. To prevent PHP Object Injection, only explicitly trusted classes are allowed to be unserialized — by default `Job::unserializePayload()` trusts none, and throws rather than silently unserializing something unexpected.
 
-```php
-// lf-config/queue.php
-'trusted_job_classes' => [
-    \App\Job\SendWelcomeEmail::class,
-    \App\Job\ChargeCard::class,
-],
-```
+The `worker` executable handles this for you: every `Job` subclass discovered under `lf-app/Job` (the same lookup `php laika job:list` uses, via `Laika\Service\Infra::getQueueJobsClasses()`) is registered as trusted automatically on startup — no config needed. It stays narrower than trusting the codebase at large, since discovery only admits classes that actually extend `Job`.
 
-Forgetting to register a job class here means the worker throws rather than silently unserializing something unexpected — this is a deliberate fail-closed default.
+Calling `Job::registerTrustedClasses()` yourself (e.g. for a job class that lives outside `lf-app/Job`) still works — see the [laika-queue README](https://github.com/laikait/laika-queue#security-trusted-job-classes).
 
 ## Running the Worker
 

@@ -30,62 +30,62 @@ Make sure Composer's global `vendor/bin` is on your `PATH`, then run `laika` (no
 
 | Command | Description |
 |---|---|
-| `php laika make:controller <name> [--method=index]` | Create a controller class |
-| `php laika list:controller` | List registered controller classes |
-| `php laika remove:controller <name>` | Delete a controller class |
-| `php laika rename:controller --old=<name> --new=<name>` | Rename a controller class and its file |
+| `php laika controller:make <name> [--method=index]` | Create a controller class |
+| `php laika controller:list` | List registered controller classes |
+| `php laika controller:remove <name>` | Delete a controller class |
+| `php laika controller:rename --old=<name> --new=<name>` | Rename a controller class and its file |
 
 ## Models & Schemas
 
 | Command | Description |
 |---|---|
-| `php laika make:model <name> [--table=table] [--id=id] [--uid=uid] [--connection=name]` | Create a model class (and matching schema) |
-| `php laika list:model` | List registered model classes |
-| `php laika remove:model <name>` | Delete a model class |
-| `php laika rename:model <old> <new>` | Rename a model class, its table, and primary/UID column references |
-| `php laika list:schema` | List registered schema classes discoverable by `app:migrate` |
+| `php laika model:make <name> [--table=table] [--id=id] [--uid=uid] [--connection=name]` | Create a model class (and matching schema) |
+| `php laika model:list` | List registered model classes |
+| `php laika model:remove <name>` | Delete a model class |
+| `php laika model:rename <old> <new>` | Rename a model class, its table, and primary/UID column references |
+| `php laika schema:list` | List registered schema classes discoverable by `app:migrate` |
 
 ## Routes
 
 | Command | Description |
 |---|---|
-| `php laika make:route <name>` | Scaffold a new route file under `lf-routes/` |
-| `php laika list:route [--method=get]` | List registered routes, optionally filtered by HTTP method |
+| `php laika route:make <name> [--method=get] [--file=web]` | Add a route, appended to `lf-routes/web.php` (or `--file=`) |
+| `php laika route:list [--method=get]` | List registered routes, optionally filtered by HTTP method |
 
 ## Pipelines & Filters
 
 | Command | Description |
 |---|---|
-| `php laika make:pipeline <name>` | Create a pipeline class in `App\Pipeline` |
-| `php laika list:pipeline` | List registered pipeline classes |
-| `php laika remove:pipeline <name>` | Delete a pipeline class |
-| `php laika rename:pipeline <old> <new>` | Rename a pipeline class |
-| `php laika make:filter <name>` | Create a filter class in `App\Filter` |
-| `php laika list:filter` | List registered filter classes |
-| `php laika remove:filter <name>` | Delete a filter class |
-| `php laika rename:filter --old=<name> --new=<name>` | Rename a filter class |
+| `php laika pipeline:make <name>` | Create a pipeline class in `App\Pipeline` |
+| `php laika pipeline:list` | List registered pipeline classes |
+| `php laika pipeline:remove <name>` | Delete a pipeline class |
+| `php laika pipeline:rename <old> <new>` | Rename a pipeline class |
+| `php laika filter:make <name>` | Create a filter class in `App\Filter` |
+| `php laika filter:list` | List registered filter classes |
+| `php laika filter:remove <name>` | Delete a filter class |
+| `php laika filter:rename --old=<name> --new=<name>` | Rename a filter class |
 
 ## Services & Relay
 
 | Command | Description |
 |---|---|
-| `php laika make:service --name=<ServiceClass> --class=<RelayClass>` | Create an `App\Service` static-proxy class bound to a Relay accessor |
-| `php laika remove:service <name>` | Delete a service class |
-| `php laika list:relay` | List registered Relay classes |
+| `php laika service:make --name=<ServiceClass> --class=<RelayClass>` | Create an `App\Service` static-proxy class bound to a Relay accessor |
+| `php laika service:remove <name>` | Delete a service class |
+| `php laika relay:list` | List registered Relay classes |
 
 ## Templates
 
 | Command | Description |
 |---|---|
-| `php laika make:template <name> [--ext=twig] [--path=path]` | Create a new Twig template under `template/` |
-| `php laika list:template` | List existing template files |
+| `php laika template:make <name> [--ext=twig] [--path=path]` | Create a new Twig template under `template/` |
+| `php laika template:list` | List existing template files |
 
 ## Secrets
 
 | Command | Description |
 |---|---|
-| `php laika fix:secret [--byte=32]` | Ensure `lf-storage/keys/app.key` exists and is valid; regenerates it only if missing or malformed. Byte range: 16–64. Runs automatically on `composer install`/`update` via the `post-autoload-dump` script |
-| `php laika generate:secret [--byte=32]` | Force-generate a brand-new secret key, overwriting the existing one |
+| `php laika secret:fix [--byte=32]` | Ensure `lf-storage/keys/app.key` exists and is valid; regenerates it only if missing or malformed. Byte range: 16–64. Runs automatically on `composer install`/`update` via the `post-autoload-dump` script |
+| `php laika secret:generate [--byte=32]` | Force-generate a brand-new secret key, overwriting the existing one |
 
 ## Help
 
@@ -101,18 +101,18 @@ Lists every registered command with its signature and description — the author
 
 ```bash
 # Scaffold a User resource
-php laika make:model User --table=users --id=id --uid=uid
-php laika make:controller UserController --method=index
-php laika make:route users
+php laika model:make User --table=users --id=id --uid=uid
+php laika controller:make UserController --method=index
+php laika route:make users
 
 # Register the schema and create the table
 php laika app:migrate --table=UsersModelSchema
 
 # Add middleware
-php laika make:pipeline Authenticate
-php laika make:filter LogAccess
+php laika pipeline:make Authenticate
+php laika filter:make LogAccess
 
 # Verify what got registered
-php laika list:route
-php laika list:model
+php laika route:list
+php laika model:list
 ```

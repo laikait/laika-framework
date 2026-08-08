@@ -9,7 +9,7 @@ A pipeline is middleware that runs **before** the controller — the natural pla
 ## Create via CLI
 
 ```bash
-php laika make:pipeline Authenticate
+php laika pipeline:make Authenticate
 ```
 
 ## Sample
@@ -105,9 +105,9 @@ Url::globalPipeline(['Csrf', 'Cors']);
 
 | Command | Description |
 |---|---|
-| `php laika make:pipeline <name>` | Create a pipeline class |
-| `php laika list:pipeline` | List registered pipeline classes |
-| `php laika remove:pipeline <name>` | Delete a pipeline class |
-| `php laika rename:pipeline <old> <new>` | Rename a pipeline class |
+| `php laika pipeline:make <name>` | Create a pipeline class |
+| `php laika pipeline:list` | List registered pipeline classes |
+| `php laika pipeline:remove <name>` | Delete a pipeline class |
+| `php laika pipeline:rename <old> <new>` | Rename a pipeline class |
 
 See [Filters](../04_filter/01_basic.md) for post-controller middleware, and [Routing](../02_routing/01_basic.md#pipelines--filters) for how attachment interacts with route groups.

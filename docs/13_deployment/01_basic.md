@@ -38,7 +38,7 @@ Add your own `fastcgi_pass`/PHP-FPM config around it — `nginx.conf` in the pro
 ## Pre-Deploy Checklist
 
 - [ ] `composer install --no-dev --prefer-dist --optimize-autoloader` — production install, no dev dependencies
-- [ ] `php laika fix:secret` — ensure `lf-storage/keys/app.key` exists (already runs on `composer install` via `post-autoload-dump`, but confirm)
+- [ ] `php laika secret:fix` — ensure `lf-storage/keys/app.key` exists (already runs on `composer install` via `post-autoload-dump`, but confirm)
 - [ ] Set `DEBUG` to `false` in `lf-inc/const.php` before going live — it's `true` by default for local development
 - [ ] Review `MEMORY_LIMIT` / `CLI_MEMORY_LIMIT` in `lf-inc/const.php` for your workload
 - [ ] Point `lf-config/database.php` (and `redis.php`/`memcached.php`/`mail.php` if used) at production credentials — never commit real credentials

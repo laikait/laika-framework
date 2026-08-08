@@ -24,7 +24,7 @@ Models resolve the `'default'` connection unless told otherwise. Connections are
 ## Defining a Model
 
 ```bash
-php laika make:model User --table=users --id=id --uid=uid
+php laika model:make User --table=users --id=id --uid=uid
 ```
 
 ```php
