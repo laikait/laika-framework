@@ -81,13 +81,13 @@ Each package has its own README with a full API reference — the docs here focu
 ## ⌨️ CLI Quick Reference
 
 ```bash
-php laika make:controller UserController
-php laika make:model User --table=users
-php laika make:pipeline Auth
-php laika make:filter Log
-php laika make:template admin/dashboard
+php laika controller:make UserController
+php laika model:make User --table=users
+php laika pipeline:make Auth
+php laika filter:make Log
+php laika template:make admin/dashboard
 
-php laika list:route
+php laika route:list
 php laika app:migrate
 php laika app:start
 ```

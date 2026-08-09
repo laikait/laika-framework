@@ -9,7 +9,7 @@ A filter is middleware that runs **after** the controller — useful for logging
 ## Create via CLI
 
 ```bash
-php laika make:filter LogAccess
+php laika filter:make LogAccess
 ```
 
 ## Sample
@@ -101,9 +101,9 @@ Url::globalFilter(['LogResponse']);
 
 | Command | Description |
 |---|---|
-| `php laika make:filter <name>` | Create a filter class |
-| `php laika list:filter` | List registered filter classes |
-| `php laika remove:filter <name>` | Delete a filter class |
-| `php laika rename:filter --old=<name> --new=<name>` | Rename a filter class |
+| `php laika filter:make <name>` | Create a filter class |
+| `php laika filter:list` | List registered filter classes |
+| `php laika filter:remove <name>` | Delete a filter class |
+| `php laika filter:rename --old=<name> --new=<name>` | Rename a filter class |
 
 See [Pipelines](../03_pipeline/01_basic.md) for pre-controller middleware.

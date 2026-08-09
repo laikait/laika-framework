@@ -40,7 +40,7 @@ See the [laika-shield README](https://github.com/laikait/laika-shield#%EF%B8%8F-
 `Shield::boot()`/`run()` **throw `Laika\Shield\Exceptions\FirewallException`** when a rule blocks the request (after already setting the appropriate HTTP status code). The natural integration point is a global [pipeline](../03_pipeline/01_basic.md) that catches it and turns it into a response:
 
 ```bash
-php laika make:pipeline Shield
+php laika pipeline:make Shield
 ```
 
 ```php

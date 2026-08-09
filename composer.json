@@ -1,6 +1,6 @@
 {
     "name": "laikait/laika-framework",
-    "description": "Laika PHP Micro Framework",
+    "description": "Laika PHP Framework",
     "type": "project",
     "license": "MIT",
     "autoload": {
@@ -31,8 +31,13 @@
     },
     "scripts": {
         "post-autoload-dump": [
-            "php laika fix:secret --byte=32",
-            "php laika app:sync"
+            "Laika\\Cli\\ScriptHandler::generate",
+            "Laika\\Queue\\ScriptHandler::generate",
+            "@php laika app:sync"
+        ],
+        "post-create-project-cmd": [
+            "Laika\\Cli\\ScriptHandler::generate",
+            "Laika\\Queue\\ScriptHandler::generate"
         ]
     }
 }

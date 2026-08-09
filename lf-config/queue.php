@@ -35,8 +35,8 @@ return [
     // lf-storage/queues/jobs.json (and lf-storage/queues/failed.json for
     // the matching failed-job provider).
 
-    // Fully-qualified Job subclass names bin/worker is allowed to
-    // unserialize() from the queue. See Laika\Queue\Abstracts\Job::registerTrustedClasses().
-    // Example: [\App\Jobs\SendWelcomeEmail::class, \App\Jobs\ChargeCard::class]
-    'trusted_job_classes' => [],
+    // Note: which Job subclasses bin/worker is allowed to unserialize()
+    // from the queue isn't configured here — every class under lf-app/Job
+    // is trusted automatically (see Laika\Queue\Abstracts\Job::registerTrustedClasses()
+    // and bin/worker).
 ];

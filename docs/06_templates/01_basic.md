@@ -5,7 +5,7 @@ Views are rendered through `Laika\Core\App\Template`, a thin wrapper around [Twi
 ## Create via CLI
 
 ```bash
-php laika make:template admin/dashboard
+php laika template:make admin/dashboard
 # creates template/admin/dashboard.twig
 ```
 
@@ -113,5 +113,5 @@ Static files referenced from templates live under `template/assets/` (`css/`, `i
 
 | Command | Description |
 |---|---|
-| `php laika make:template <name> [--ext=twig] [--path=path]` | Create a new template file |
-| `php laika list:template` | List existing template files |
+| `php laika template:make <name> [--ext=twig] [--path=path]` | Create a new template file |
+| `php laika template:list` | List existing template files |
