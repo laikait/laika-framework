@@ -21,13 +21,7 @@
     "minimum-stability": "stable",
     "require": {
         "php": ">=8.1",
-        "laikait/laika-core": "^4"
-    },
-    "config": {
-        "allow-plugins": {
-            "laikait/laika-cli": true,
-            "laikait/laika-queue": true
-        }
+        "laikait/laika-core": "^4.3"
     },
     "scripts": {
         "post-autoload-dump": [

@@ -10,7 +10,7 @@
 
 // namespace App\Relay;
 
-// use Laika\Core\Relay\RelayProvider;
+// use Laika\Relay\RelayProvider;
 // use Laika\Core\App\Template;
 
 // class Example extends RelayProvider
