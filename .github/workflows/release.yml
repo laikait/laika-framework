@@ -25,7 +25,7 @@ jobs:
       - name: Prepare release artifact
         run: |
           mkdir build
-          cp -r index.php assets docs lf-app lf-boot lf-cache lf-config lf-hooks lf-inc lf-lang lf-routes template .gitignore .htaccess composer.json laika nginx.conf LICENSE README.md build/
+          cp -r index.php assets docs lf-app lf-boot lf-cache lf-config lf-hooks lf-inc lf-lang lf-routes template .gitignore .htaccess composer.json nginx.conf LICENSE README.md build/
           echo "${{ github.run_number }}" > build/VERSION
           cd build && zip -r ../${{ env.ARTIFACT }}.zip .
 

@@ -10,7 +10,7 @@
 
 // namespace App\Service;
 
-// use Laika\Core\Relay\Relay;
+// use Laika\Relay\Relay;
 
 // /**
 //  * @method static int getOffset()
