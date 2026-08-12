@@ -15,7 +15,7 @@ namespace App\Schema;
 use App\Model\StaffsModel;
 use Laika\Model\Schema\Schema;
 use Laika\Model\Schema\Blueprint;
-use Laika\Core\Abstracts\SchemaAbstract;
+use Laika\Model\Contract\SchemaAbstract;
 use Laika\Core\Exceptions\SchemaException;
 
 class StaffsModelSchema extends SchemaAbstract

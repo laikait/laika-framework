@@ -2,10 +2,10 @@ vendor/
 lf-logs/
 lf-cache/
 lf-storage/
-.idea/
 composer.phar
 composer.lock
 laika
 laika.bat
 worker
 worker.bat
+*.htaccess
