@@ -23,8 +23,23 @@ return [
     'port'      =>  6379,
 
     // Prefix
-    'prefix'    =>  'lf',
-    
+    'prefix'    =>  'laika',
+
+    // Expire
+    'expire'    =>  0,
+
+    // Database Index. Server Default Range is 0-15
+    'database'  =>  0,
+
+    // Connect Timeout in Seconds
+    'timeout'   =>  2.5,
+
+    // Read Timeout in Seconds
+    'read_timeout' => 2.5,
+
+    // Username
+    'username'  =>  '',
+
     // Password
     'password'  =>  ''
 ];

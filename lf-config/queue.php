@@ -31,6 +31,16 @@ return [
     // The 'redis' driver connects using lf-config/redis.php as-is (host,
     // port, password) — no separate connection to configure here.
 
+    // How long (seconds) a reserved job may sit before a worker treats it as
+    // stalled and reclaims it. Redis driver only.
+    'reserve_timeout' => 90,
+
+    // Attempt ceiling applied when reclaiming stalled jobs: once a job has
+    // been reclaimed this many times it goes to the dead set instead of back
+    // onto the queue, so a job that keeps killing its worker stops cycling.
+    // 0 disables the cap. Redis driver only.
+    'max_tries' => 3,
+
     // The 'json' driver has no config either — it always uses
     // lf-storage/queues/jobs.json (and lf-storage/queues/failed.json for
     // the matching failed-job provider).

@@ -22,7 +22,10 @@ return [
     'port'      =>  11211,
 
     // Prefix
-    'prefix'    =>  'cbm',
+    'prefix'    =>  'laika',
+
+    // Expire Time in Seconds. 0 Means No Expire Time
+    'expire'    =>  0,
 
     // Username
     'username'  =>  '',
