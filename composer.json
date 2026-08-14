@@ -33,5 +33,10 @@
             "Laika\\Cli\\ScriptHandler::generate",
             "Laika\\Queue\\ScriptHandler::generate"
         ]
+    },
+    "config": {
+        "platform": {
+            "php": "8.1.0"
+        }
     }
 }
