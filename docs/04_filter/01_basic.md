@@ -17,7 +17,7 @@ php laika filter:make LogAccess
 ```php
 namespace App\Filter;
 
-use Laika\Route\Interfaces\FilterInterface;
+use Laika\Route\Contracts\FilterInterface;
 
 class LogAccess implements FilterInterface
 {
@@ -60,7 +60,7 @@ Url::get('/reports', 'ReportController@index')->filter(['LogAccess|level=info'])
 ```php
 namespace App\Filter;
 
-use Laika\Route\Interfaces\FilterInterface;
+use Laika\Route\Contracts\FilterInterface;
 
 class LogAccess implements FilterInterface
 {
@@ -92,7 +92,7 @@ Url::globalFilter(['LogResponse']);
 
 ## Rules
 
-- Implements `Laika\Route\Interfaces\FilterInterface`.
+- Implements `Laika\Route\Contracts\FilterInterface`.
 - `terminate(callable $next, ?string $response, array &$params): ?string`
 - `$params` — passed by reference, same array threaded through pipelines and the controller.
 - Runs after the controller, in the order registered.

@@ -5,7 +5,7 @@
 | Requirement | Notes |
 |---|---|
 | PHP `>= 8.1` | 8.1 – 8.5 are tested in CI |
-| Composer 2.2+ | Required for plugin auto-loading (`laika-cli`, `laika-queue`) |
+| Composer 2.x | `laika-cli` and `laika-queue` generate their executables from a `post-autoload-dump` script |
 | `ext-pdo` | Plus the PDO driver for your database (`pdo_mysql`, `pdo_pgsql`, `pdo_sqlite`, ...) |
 | `ext-json`, `ext-mbstring` | Required by the framework core |
 | `ext-pcntl`, `ext-posix` *(optional)* | Enables graceful shutdown/timeouts in the queue worker — Linux/macOS only |
@@ -28,20 +28,30 @@ cd myproject
 composer install
 ```
 
-## Composer plugin trust prompt
+## The `laika` and `worker` executables
 
-`laika-cli` and `laika-queue` ship as Composer plugins (they generate the `laika` and `worker` executables on install). Composer 2.2+ requires plugins to be explicitly trusted. This is already configured in the framework's `composer.json`:
+`laikait/laika-cli` and `laikait/laika-queue` generate a `laika` and a `worker`
+executable in your project root. Both are thin proxies into the copy installed in
+`vendor/`, so they always match the version this project has.
+
+They are written by a `post-autoload-dump` script, so they appear on the first
+`composer install` and are rewritten whenever their content changes. Delete one and
+it comes back on the next Composer run. A project not created from the skeleton needs
+to wire the script itself:
 
 ```json
-"config": {
-    "allow-plugins": {
-        "laikait/laika-cli": true,
-        "laikait/laika-queue": true
-    }
+"scripts": {
+    "post-autoload-dump": [
+        "Laika\\Cli\\ScriptHandler::generate",
+        "Laika\\Queue\\ScriptHandler::generate"
+    ]
 }
 ```
 
-If you see a trust prompt anyway (e.g. after adding another plugin package), see [CLI Reference](04_cli.md) or that package's README for the exact key to add.
+> **No `allow-plugins` entry is needed.** Both packages were Composer *plugins* before
+> laika-cli 3.0 and required trusting in every consuming project. They are ordinary
+> libraries now, so you can drop `laikait/laika-cli` and `laikait/laika-queue` from
+> `config.allow-plugins` if an older project still lists them.
 
 ## Run the development server
 

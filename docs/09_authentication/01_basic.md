@@ -82,7 +82,7 @@ Wrap a route (or a whole group) in a pipeline that checks the guard before the c
 namespace App\Pipeline;
 
 use Laika\Auth\AuthManager;
-use Laika\Route\Interfaces\PipelineInterface;
+use Laika\Route\Contracts\PipelineInterface;
 
 class Authenticate implements PipelineInterface
 {

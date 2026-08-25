@@ -5,7 +5,5 @@ lf-storage/
 composer.phar
 composer.lock
 laika
-laika.bat
 worker
-worker.bat
 *.htaccess
