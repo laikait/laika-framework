@@ -107,7 +107,7 @@ class DashboardController
 }
 ```
 
-## Pairing With Middleware
+## Pairing With Pipeline
 
 Pipelines and filters wrap the controller call — see [Routing](01_basic.md#pipelines--filters), [Pipelines](../03_pipeline/01_basic.md), and [Filters](../04_filter/01_basic.md).
 
