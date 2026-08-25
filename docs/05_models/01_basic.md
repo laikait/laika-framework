@@ -73,14 +73,14 @@ $users->where(['id' => $id])->delete();
 
 ## Defining a Schema
 
-Schemas own table DDL and live in `lf-app/Schema`, one class per table, extending `Laika\Core\Abstracts\SchemaAbstract`:
+Schemas own table DDL and live in `lf-app/Schema`, one class per table, extending `Laika\Model\Contract\SchemaAbstract`:
 
 ```php
 namespace App\Schema;
 
 use Laika\Model\Schema\Schema;
 use Laika\Model\Schema\Blueprint;
-use Laika\Core\Abstracts\SchemaAbstract;
+use Laika\Model\Contract\SchemaAbstract;
 
 class UsersModelSchema extends SchemaAbstract
 {

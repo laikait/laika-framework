@@ -1,18 +1,10 @@
 # Security (Shield)
 
-[`laikait/laika-shield`](https://github.com/laikait/laika-shield) is a zero-dependency firewall middleware: country/IP blocking, rate limiting, SQL injection & XSS detection, and general request filtering. It isn't installed by every Laika project by default — add it when you need it:
-
-```bash
-composer require laikait/laika-shield
-```
+[`laikait/laika-shield`](https://github.com/laikait/laika-shield) is a firewall middleware: country/IP blocking, rate limiting, SQL injection & XSS detection, and general request filtering. `laikait/laika-core` requires it, so it is **already installed** in every Laika project — there is nothing to add. It does nothing until you wire it in, which is what the rest of this page covers.
 
 ## Configuring
 
-Copy the sample config and adjust it:
-
-```bash
-cp vendor/laikait/laika-shield/src/Storage/config.sample.php lf-storage/shield.config.php
-```
+There is no config file to publish — every option carries its own default. Create one only if you want your settings in a file, returning the keys you wish to override:
 
 ```php
 // lf-storage/shield.config.php
@@ -48,14 +40,16 @@ namespace App\Pipeline;
 
 use Laika\Shield\Shield;
 use Laika\Shield\Exceptions\FirewallException;
-use Laika\Route\Interfaces\PipelineInterface;
+use Laika\Route\Contracts\PipelineInterface;
 
 class Shield implements PipelineInterface
 {
     public function handle(callable $next, array &$params): ?string
     {
         try {
-            \Laika\Shield\Shield::boot(require APP_PATH . '/lf-storage/shield.config.php');
+            // boot() takes no arguments and reads the shared ShieldConfig.
+            // To apply an array, hand it to fromConfig() instead:
+            Shield::fromConfig(require APP_PATH . '/lf-storage/shield.config.php')->run();
         } catch (FirewallException $e) {
             // Status code is already set by Shield; just supply a body.
             return $e->getMessage();
@@ -91,21 +85,21 @@ use Laika\Shield\Shield;
 
 ## Runtime Config Changes
 
-`Laika\Shield\Config` gives dot-notation access without touching the config file directly:
+`Laika\Shield\ShieldConfig` gives dot-notation access without touching the config file directly:
 
 ```php
-use Laika\Shield\Config;
+use Laika\Shield\ShieldConfig;
 
-Config::add('rate.limit', 'max.hits', 30);
-Config::add('sql.injection', 'skip.keys', ['password', 'token']);
+ShieldConfig::add('rate.limit', 'max.hits', 30);
+ShieldConfig::add('sql.injection', 'skip.keys', ['password', 'token']);
 
-Shield::boot(); // uses Config automatically when no array is passed
+Shield::boot(); // no arguments - always reads the shared ShieldConfig
 ```
 
 ## Custom Rules
 
 ```php
-use Laika\Shield\Interfaces\RuleInterface;
+use Laika\Shield\Contract\RuleInterface;
 
 class BlockBadReferrer implements RuleInterface
 {

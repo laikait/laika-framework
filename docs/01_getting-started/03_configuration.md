@@ -120,7 +120,7 @@ See [Authentication](../09_authentication/01_basic.md) for guard usage.
 
 ## Shield (firewall) config
 
-Not part of `lf-config/` by default — `laikait/laika-shield` reads its own config array via `Laika\Shield\Config` (dot-notation `add()`/`get()`/`has()`), typically loaded from a file you publish yourself. See [Security (Shield)](../10_security/01_basic.md).
+Not part of `lf-config/` by default — `laikait/laika-shield` reads its own config array via `Laika\Shield\ShieldConfig` (dot-notation `add()`/`get()`/`has()`), typically loaded from a file you publish yourself. See [Security (Shield)](../10_security/01_basic.md).
 
 ## CORS
 

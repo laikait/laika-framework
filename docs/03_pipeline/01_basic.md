@@ -17,7 +17,7 @@ php laika pipeline:make Authenticate
 ```php
 namespace App\Pipeline;
 
-use Laika\Route\Interfaces\PipelineInterface;
+use Laika\Route\Contracts\PipelineInterface;
 
 class Authenticate implements PipelineInterface
 {
@@ -63,7 +63,7 @@ Url::get('/reports', 'ReportController@index')->pipeline(['Throttle|limit=60,win
 ```php
 namespace App\Pipeline;
 
-use Laika\Route\Interfaces\PipelineInterface;
+use Laika\Route\Contracts\PipelineInterface;
 
 class Role implements PipelineInterface
 {
@@ -97,7 +97,7 @@ Url::globalPipeline(['Csrf', 'Cors']);
 
 ## Rules
 
-- Implements `Laika\Route\Interfaces\PipelineInterface`.
+- Implements `Laika\Route\Contracts\PipelineInterface`.
 - `handle(callable $next, array &$params): ?string`
 - `$params` — route params + pipeline config args, merged and passed **by reference** through the whole chain (pipeline → controller → filter). Mutate it to pass data forward.
 

@@ -38,7 +38,7 @@ The bulk of your code lives here, organized by responsibility. Every subdirector
 |---|---|---|
 | `Controller/` | `App\Controller` | Route handlers |
 | `Model/` | `App\Model` | `Laika\Model\Model` subclasses (query builder) |
-| `Schema/` | `App\Schema` | Table definitions (`Laika\Core\Abstracts\SchemaAbstract`), run via `php laika app:migrate` |
+| `Schema/` | `App\Schema` | Table definitions (`Laika\Model\Contract\SchemaAbstract`), run via `php laika app:migrate` |
 | `Pipeline/` | `App\Pipeline` | Pre-controller middleware |
 | `Filter/` | `App\Filter` | Post-controller middleware |
 | `Relay/` | `App\Relay` | `RelayProvider` classes — register app-level services into the container |

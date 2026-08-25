@@ -7,4 +7,4 @@
  * stays in sync with the version required by this project.
  */
 
-require __DIR__ . '/vendor/laikait/laika-cli/laika';
+require __DIR__ . '/vendor/laikait/laika-cli/bin/laika';

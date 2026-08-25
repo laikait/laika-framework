@@ -95,7 +95,7 @@ Call into app-level services registered through the [service container](../07_se
 ```php
 namespace App\Controller;
 
-use Laika\Service\Session;
+use Laika\Session\Session;
 
 class DashboardController
 {
