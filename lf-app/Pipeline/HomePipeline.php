@@ -15,7 +15,7 @@ namespace App\Pipeline;
 // Deny Direct Access
 defined('APP_PATH') || http_response_code(403).die('403 Direct Access Denied!');
 
-use Laika\Route\Interfaces\PipelineInterface;
+use Laika\Route\Contracts\PipelineInterface;
 
 class HomePipeline implements PipelineInterface
 {

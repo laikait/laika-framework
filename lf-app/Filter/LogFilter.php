@@ -15,7 +15,7 @@ namespace App\Filter;
 // Deny Direct Access
 defined('APP_PATH') || http_response_code(403).die('403 Direct Access Denied!');
 
-use Laika\Route\Interfaces\FilterInterface;
+use Laika\Route\Contracts\FilterInterface;
 
 class LogFilter implements FilterInterface
 {

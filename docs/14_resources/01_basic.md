@@ -80,13 +80,14 @@ A name your application declares **replaces the framework default** for that nam
 
 ## Declaring resources from a package
 
-Package authors declare resources in their own `composer.json`, alongside the existing `extra.laika.relays`:
+Package authors declare resources in their own `composer.json`. Relay providers are declared the same way, as a directory of `RelayProvider` classes:
 
 ```json
 {
     "extra": {
         "laika": {
             "resources": {
+                "relays":  { "path": "src/Relay",  "namespace": "Acme\\Blog\\Relay" },
                 "models":  { "path": "src/Model",  "namespace": "Acme\\Blog\\Model" },
                 "schemas": { "path": "src/Schema", "namespace": "Acme\\Blog\\Schema" }
             }
@@ -95,7 +96,7 @@ Package authors declare resources in their own `composer.json`, alongside the ex
 }
 ```
 
-Paths are relative to the package root. **That is the entire integration** — no bootstrap file, no `files` autoload entry, no code. The framework reads `extra.laika.resources` from every installed package via `vendor/composer/installed.json`, the same mechanism `extra.laika.relays` already uses.
+Paths are relative to the package root. **That is the entire integration** — no bootstrap file, no `files` autoload entry, no code. The framework reads `extra.laika.resources` from every installed package via `vendor/composer/installed.json`. It is the only such mechanism — the older `extra.laika.relays` key, a flat list of provider class names, was replaced by the `relays` resource above.
 
 Because the data comes from `installed.json`, it is a snapshot taken at install time. If you edit a package's `composer.json` in place inside `vendor/`, run `composer install` (or `composer update`) so the snapshot catches up — `composer dump-autoload` alone does **not** refresh it.
 
