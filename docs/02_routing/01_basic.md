@@ -72,7 +72,7 @@ Url::group('api', function () {
 
 ## Pipelines & Filters
 
-Attach middleware per route:
+Attach pipeline per route:
 
 ```php
 Url::get('/profile', 'ProfileController@show')
