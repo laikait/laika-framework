@@ -1,6 +1,6 @@
 # Laika Framework
 
-A lightweight, fast, and flexible **MMC framework** (Model-Middleware-Controller) for PHP 8.1+, built with simplicity in mind. Laika gives you routing, models, templating, a service container, and a CLI generator — without the overhead of large frameworks like Laravel or Symfony.
+A secure, fast, and flexible **MVC framework** for PHP 8.1+, built with simplicity in mind. Laika gives you routing, models, templating, a service container, and a CLI generator — without the overhead of large frameworks like Laravel or Symfony.
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/laikait/laika-framework)
 [![PHP](https://img.shields.io/badge/PHP-8.1%2B-blue.svg)](https://php.net)
