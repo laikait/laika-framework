@@ -34,7 +34,7 @@ If you're new here, read the guides in order. If you already know what you're lo
 |---|---|
 | [Authentication](09_authentication/01_basic.md) | Session/cookie/token guards, OAuth |
 | [Security (Shield)](10_security/01_basic.md) | Firewall middleware — rate limiting, IP/country blocking, SQLi/XSS detection |
-| [Sessions](11_sessions/01_basic.md) | File/PDO/Redis/Memcached session backends |
+| [Sessions](11_sessions/01_basic.md) | File/MySQL/Model/Redis/Memcached session backends |
 | [Queue](12_queue/01_basic.md) | Background jobs and the `worker` process |
 
 ## Operations
