@@ -51,7 +51,36 @@ Url::get('/dashboard', function () {
 })->filter([LogAccess::class, AuditFilter::class]);
 ```
 
+## Dependencies
+
+Type hint what the filter needs in its constructor and the container builds it:
+
+```php
+namespace App\Filter;
+
+use Laika\Route\Contracts\FilterInterface;
+use App\Service\LoggerService;
+
+class LogAccess implements FilterInterface
+{
+    public function __construct(private LoggerService $log) {}
+
+    public function terminate(callable $next, ?string $response, array &$params): ?string
+    {
+        $this->log->write($params);
+
+        return $next($response);
+    }
+}
+```
+
+Concrete classes auto-wire with no registration; interface type hints must be bound in a [RelayProvider](../07_services-and-relay/01_basic.md). A `singleton()` binding is the same instance the pipelines and controller on that route received. See [Pipelines → Dependencies](../03_pipeline/01_basic.md) for the full rules.
+
+`terminate()` keeps its fixed signature — the constructor is the injection point.
+
 ## Passing Config Args
+
+Inline args are **route params, not constructor arguments** — they arrive in `$params`, and are unaffected by dependency injection:
 
 ```php
 Url::get('/reports', 'ReportController@index')->filter(['LogAccess|level=info']);

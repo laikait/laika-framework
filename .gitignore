@@ -1,6 +1,5 @@
 vendor/
 lf-logs/
-lf-cache/
 lf-storage/
 composer.phar
 composer.lock
