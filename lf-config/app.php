@@ -1,12 +1,12 @@
 <?php
 /**
- * Laika Framework
- * Author: Showket Ahmed
- * Email: riyadhtayf@gmail.com
- * License: MIT
- * This file is part of the Laika Framework.
- * For the full copyright and license information, please view the LICENSE file that was distributed with this source code.
- */
+* Laika PHP MVC Framework
+* Author: Showket Ahmed
+* Email: riyadhtayf@gmail.com
+* License: MIT
+* This file is part of the Laika PHP MVC Framework.
+* For the full copyright and license information, please view the LICENSE file that was distributed with this source code.
+*/
 
 declare(strict_types=1);
 
@@ -21,5 +21,11 @@ return [
     'url'           =>  'https://laikaframework.com',
 
     // Docs_url
-    'documentation' =>  'https://docs.laikaframework.com'
+    'documentation' =>  'https://docs.laikaframework.com',
+
+    // Proxies allowed to set X-Forwarded-* / CF-Visitor / X-Real-IP.
+    // IPs or CIDR ranges, e.g. ['10.0.0.0/8', '192.168.1.5'].
+    // Empty means trust nothing, which is correct for a directly reached
+    // server. '*' trusts every forwarded header and is a last resort.
+    'trusted_proxies' => []
 ];
