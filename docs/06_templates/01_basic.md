@@ -40,20 +40,49 @@ $tpl->assign('title', 'Dashboard');
 $tpl->assign(['title' => 'Dashboard', 'user' => $user]);
 ```
 
-## Sub-directories & Custom Paths
+## Sub-directories
+
+The directory lives in the **view name**. `Template` takes no constructor arguments:
 
 ```php
-new Template();              // template/
-new Template('admin');       // template/admin/
-new Template('admin/reports'); // template/admin/reports/
-new Template('/absolute/path/to/dir'); // any absolute path, used as-is
+$tpl = new Template();
+
+$tpl->view('home');                 // template/home.twig
+$tpl->view('admin/dashboard');      // template/admin/dashboard.twig
+$tpl->view('admin/bootstrap/home'); // template/admin/bootstrap/home.twig
 ```
 
-The rule is simple: **an absolute path is used as given, anything else is a sub-directory of `template/`.** Separators are normalised, so `'admin/reports'`, `'admin\reports'` and `'admin\reports\'` are the same directory on every platform. A sub-directory may not contain `..` — that throws `PathException`.
+Everything up to the last slash is the directory, and it decides all three paths at once:
 
-Note that a leading slash makes a path absolute, including on Windows: `new Template('/admin')` means the filesystem root, not `template/admin`. Drop the leading slash for a sub-directory.
+| For `view('admin/bootstrap/home')` | |
+|---|---|
+| Template directory | `template/admin/bootstrap/` |
+| Cache directory | `lf-storage/cache/template/admin/bootstrap/` |
+| Template file | `template/admin/bootstrap/home.twig` |
 
-The second argument overrides the cache directory the same way, relative to `lf-storage/cache/template/`.
+Both directories are created if they do not exist. One instance can render views from different sub-directories in turn — the engine is re-pointed on every `view()` call:
+
+```php
+$tpl = new Template();
+$tpl->view('admin/bootstrap/home');
+$tpl->view('home');                 // back to template/
+```
+
+A view name is always slash-separated — it is a Twig name, not a file path. Backslashes are normalised and a leading or trailing slash is ignored, so `'admin/reports/index'` and `'/admin/reports/index'` are the same view on every platform. A name may not contain `..` and may not be absolute (including a Windows drive prefix such as `C:/`) — both throw `PathException`.
+
+### Sub-directories are isolated
+
+The loader is pointed at the view's own directory and nothing else, so a template under `admin/bootstrap/` cannot `extends` or `include` a template at the root. To share layouts and partials, register a fallback directory that is searched after the view's own:
+
+```php
+$tpl = new Template();
+$tpl->addPath(TEMPLATE_PATH . DS . 'shared');
+$tpl->view('admin/bootstrap/home'); // may now extend 'layout.twig' from template/shared/
+```
+
+A path added this way survives the per-render re-point; one added directly through `engine()->getLoader()->addPath()` does not.
+
+> **Upgrading:** `Template` used to take the sub-directory (and a cache sub-directory) as constructor arguments. `new Template('admin')` now raises `E_USER_DEPRECATED` and the argument is ignored — move it onto the view name. An absolute directory is no longer accepted; use `addPath()` instead.
 
 ## HTML instead of Twig
 
@@ -148,7 +177,7 @@ Only `decode` and `named` take the value you would expect on the left. The rest 
 
 ## Registering Assets
 
-`template/loader.php` is auto-loaded for **every** `Template` instance — including sub-directory ones — and is where you enqueue CSS/JS via hooks:
+`template/loader.php` is auto-loaded for **every** `Template` instance, whichever sub-directory the view comes from, and is where you enqueue CSS/JS via hooks:
 
 ```php
 // template/loader.php
@@ -156,7 +185,7 @@ do_hook('enqueue_style', 'style', 'template/assets/css/style.css');
 do_hook('enqueue_script', 'app', 'template/assets/js/app.js');
 ```
 
-The root `loader.php` is generated on first run if it is missing. A sub-directory may add its own `template/<sub>/loader.php`, which loads *after* the root one — it is never generated for you.
+The root `loader.php` is generated on first run if it is missing. A sub-directory may add its own `template/<sub>/loader.php`, which loads *after* the root one when a view from that directory is rendered — it is never generated for you.
 
 Static files referenced from templates live under `template/assets/` (`css/`, `img/`, ...).
 
