@@ -34,7 +34,34 @@ Url::get('/users/{id:[0-9]+}', 'UserController@show'); // regex-constrained
 Url::get('/users/{id:\d+}', 'UserController@show');    // shorthand works too
 ```
 
-Static/more-specific patterns are matched before generic ones — Laika sorts registered routes by key length (longest first) before matching.
+Routes are tested in **registration order** — the first pattern that matches wins.
+Register the more specific route before the generic one that would also match it:
+
+```php
+Url::get('/users/new', 'UserController@create'); // must come first
+Url::get('/users/{id}', 'UserController@show');  // {id} would swallow "new"
+```
+
+## Non-ASCII Routes
+
+Route URIs may contain any UTF-8 character:
+
+```php
+Url::get('/বাংলা', 'PageController@show')->name('bangla');
+Url::get('/blog/{slug}', 'PostController@show'); // {slug} matches UTF-8 too
+```
+
+The request path is percent-decoded one segment at a time before matching, so
+the encoded form a browser actually sends (`/%E0%A6%AC%E0%A6%BE...`) and the raw
+form you write in the route file are the same route. Registered URIs are decoded
+the same way, so an already-encoded URI in the route file works as well.
+
+Parameter constraints are matched with the `u` flag, so `{slug:\w+}` and `.`
+count characters rather than bytes.
+
+Two request forms are always refused with a 404, because neither can be
+expressed unambiguously as a path: an encoded separator (`%2F`, `%5C`) or a NUL
+byte inside a segment, and a path that is not valid UTF-8.
 
 ## Named Routes
 
