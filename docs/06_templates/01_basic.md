@@ -187,7 +187,14 @@ do_hook('enqueue_script', 'app', 'template/assets/js/app.js');
 
 The root `loader.php` is generated on first run if it is missing. A sub-directory may add its own `template/<sub>/loader.php`, which loads *after* the root one when a view from that directory is rendered — it is never generated for you.
 
-Static files referenced from templates live under `template/assets/` (`css/`, `img/`, ...).
+Static files referenced from templates live under `template/assets/` (`css/`, `img/`, ...). A sub-directory template may keep its own instead — `template/<sub>/assets/css/app.css` is served just as well, so a template can ship self-contained assets:
+
+```php
+// template/admin/loader.php
+do_hook('enqueue_style', 'admin', 'template/admin/assets/css/admin.css');
+```
+
+Which files are servable is decided by extension in [`lf-config/assets.php`](../01_getting-started/03_configuration.md), not by directory — `.twig` sources are never served from anywhere.
 
 ## CLI Reference
 
