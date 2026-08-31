@@ -20,6 +20,49 @@ return [
 ];
 ```
 
+## `lf-config/assets.php`
+
+Which static files the framework will hand out. Every request reaches `index.php` — the rewrite rules do not let the web server serve a file directly — so `Laika\Route\Dispatcher` is the only gatekeeper, and this file is what it reads.
+
+```php
+return [
+    // Servable extensions. Anything not listed is a 404, whatever directory it
+    // sits in. That is what keeps .twig sources, .env, lf-logs/*.log and
+    // lf-storage/keys/app.key unreachable.
+    'extensions' => [
+        'css', 'js', 'map',
+        'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'ico', 'bmp',
+        'woff', 'woff2', 'ttf', 'otf',
+        'mp3', 'wav', 'ogg', 'mp4', 'webm',
+        'pdf', 'zip', 'txt', 'csv',
+    ],
+
+    // Refused everywhere, even if listed above.
+    'blocked' => ['php', 'phar', 'phtml', 'phps', 'json'],
+
+    // Roots written by users rather than by you. Markup served from here is
+    // stored XSS, so these types are refused inside them.
+    'untrusted' => [
+        'roots'   => ['uploads'],
+        'blocked' => ['html', 'htm', 'svg', 'xml'],
+    ],
+];
+```
+
+An extension in both `extensions` and `blocked` is refused — `blocked` always wins. `Content-Type` still comes from `Laika\Service\MimeType`; note that `MimeType::register()` only adds a content type, it does not make a type servable. Only this file decides that.
+
+Three rules are enforced in code and no config can loosen them:
+
+| Never served | |
+|---|---|
+| `lf-*`, `vendor/`, `docs/` | framework internals — the same list `nginx.conf` denies |
+| any path with a dot segment | `.git/`, `.env`, `.htaccess` |
+| anything outside `APP_PATH` | `realpath()` resolves `..` and symlinks before the check |
+
+Everything else under the project root is servable if its extension passes, so a per-template asset directory such as `template/{name}/assets/css/app.css` works with no configuration. Rejections are a bare `404`, so a forbidden path looks the same as a missing one.
+
+If this file is absent the framework falls back to built-in defaults: every type `MimeType` knows, minus the php family and `html`, `htm`, `svg`, `xml`, `json` — the same set it served before this config existed.
+
 ## `lf-config/database.php`
 
 Each **top-level key is a connection name**. `Laika\Model\Model` and `Laika\Model\Schema\Schema` resolve connections by this name (`'default'` is used when a model doesn't override it). You can register as many named connections as you need.
