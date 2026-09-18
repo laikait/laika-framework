@@ -15,6 +15,7 @@
 declare(strict_types=1);
 
 use Laika\Service\Infra;
+use Laika\Route\Dispatcher;
 
 #################################################################
 // --------------------- DEFINE CONSTANT --------------------- //
@@ -33,6 +34,23 @@ require_once APP_PATH . '/lf-inc/const.php';
 // ----------------------- AUTOLOADER ----------------------- //
 ################################################################
 require_once APP_PATH . '/vendor/autoload.php';
+// ---------------------------------------------------------- //
+
+################################################################
+// --------------------- STATIC FILES ----------------------- //
+################################################################
+// A static file needs none of what follows, so it is answered here rather
+// than after the function and hook files have been discovered and loaded.
+// The relay container it does need was built by the autoloader above.
+//
+// exit, not return: index.php requires this file, so returning would hand
+// control back and dispatch the same request a second time.
+//
+// The CLI guard matters -- bin/laika and the queue worker require this file
+// too, and neither has a request to answer.
+if (PHP_SAPI !== 'cli' && Dispatcher::dispatchAsset()) {
+    exit;
+}
 // ---------------------------------------------------------- //
 
 ################################################################

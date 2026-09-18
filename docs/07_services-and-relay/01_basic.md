@@ -1,50 +1,51 @@
-# Services & Relay
+# Services & Relays
 
-Laika's service container is [`laikait/laika-relay`](https://github.com/laikait/laika-relay) — a lightweight DI container (`RelayRegistry`) plus a static-proxy base class (`Relay`) for exposing bound services as clean facades (`Auth::check()`, `Session::get()`, ...). This page covers the app-level convention; see the [laika-relay README](https://github.com/laikait/laika-relay) for the full container API (`singleton()`/`bind()`/`instance()`, auto-wiring, provider lifecycle, testing).
+Laika's service container is [`laikait/laika-relay`](https://github.com/laikait/laika-relay). It has two parts:
 
-Two directories work together:
+- **`RelayRegistry`** — a small dependency-injection container. You bind services into it with `singleton()`, `bind()` or `instance()`.
+- **Relays** — classes extending `Laika\Relay\Relay` that forward static calls to a bound service. `Laika\Service\Request::input('email')` is a relay call: it runs `input('email')` on the shared `Request` instance.
+
+The framework's own services are all reachable this way — see the [relay list](02_relay-list.md). This page shows how to add your own.
 
 | Directory | Namespace | Role |
 |---|---|---|
-| `lf-app/Relay/` | `App\Relay` | `RelayProvider` classes — **bind** a service into the container |
-| `lf-app/Service/` | `App\Service` | `Relay` proxy classes — the **facade** your app code actually calls |
+| `lf-app/Relay/` | `App\Relay` | **Providers** (`RelayProvider`) — bind a service into the container |
+| `lf-app/Service/` | `App\Service` | **Relays** (`Relay`) — the static class your code calls |
 
-## Create via CLI
+Both are discovered automatically; there is nothing to register.
+
+## Quick Start
 
 ```bash
-php laika service:make --name=Mailer --class=App\\Model\\MailerModel
+php laika service:make --name=Mailer --class=Laika\\Mailman\\Mailer
 ```
 
-This generates both halves at once:
+This generates both halves:
 
-- `lf-app/Service/Mailer.php` — the facade you'll `use` in controllers
-- `lf-app/Relay/Mailer.php` — the provider that binds it into the container
+- `lf-app/Relay/Mailer.php` — the provider, binding `Laika\Mailman\Mailer` as a singleton under the key `mailer.accessor`
+- `lf-app/Service/Mailer.php` — the relay you call
 
-## The Relay Provider (binding)
+`--class` is the concrete class to bind and must already exist. `--name` and `--class` accept letters, underscores and `\` only.
+
+Customise the provider so the service is built with the right arguments:
 
 ```php
 namespace App\Relay;
 
 use Laika\Relay\RelayProvider;
-use App\Model\MailerModel;
+use Laika\Mailman\Mailer;
 
 class Mailer extends RelayProvider
 {
     public function register(): void
     {
-        // Only bind() / singleton() / instance() here — other providers
-        // may not have registered their services yet.
-        $this->registry->singleton('mailer.accessor', MailerModel::class, []);
-    }
-
-    public function boot(): void
-    {
-        // Called after every provider has registered. Safe to make() here.
+        // A closure factory receives the registry, then any $args
+        $this->registry->singleton('mailer.accessor', fn () => new Mailer(config('mail')));
     }
 }
 ```
 
-## The Service Facade (usage)
+Document the methods on the relay for IDE autocomplete:
 
 ```php
 namespace App\Service;
@@ -52,7 +53,8 @@ namespace App\Service;
 use Laika\Relay\Relay;
 
 /**
- * @method static int example()
+ * @method static \Laika\Mailman\Mailer to(string $address, string $name = '')
+ * @method static bool send()
  */
 class Mailer extends Relay
 {
@@ -66,51 +68,118 @@ class Mailer extends Relay
 ```php
 use App\Service\Mailer;
 
-Mailer::send($to, $subject, $body);
+Mailer::to('ann@example.com')->subject('Hi')->text('Hello!')->send();
 ```
 
-Document every proxied method with a `@method static` tag on the facade class — that's what gives you IDE autocomplete on an otherwise-magic `__callStatic` call.
+Method chaining works whenever the target method returns `$this`: the first call goes through the relay, the rest run on the returned object.
 
-## `register()` vs `boot()`
+> **Singletons are shared.** A stateful service like `Mailer` keeps its recipients between calls in the same process. Call its `reset()` (or bind with `bind()` for a fresh instance per resolution) when that matters.
+
+## Providers: `register()` and `boot()`
+
+```php
+namespace App\Relay;
+
+use Laika\Relay\RelayProvider;
+
+class Billing extends RelayProvider
+{
+    public function register(): void
+    {
+        // Only bind here.
+        $this->registry->singleton('billing', \App\Support\Billing::class);
+        $this->registry->singleton(\App\Contracts\PaymentGateway::class, \App\Support\StripeGateway::class);
+    }
+
+    public function boot(): void
+    {
+        // Every provider has registered; relays work; safe to make().
+    }
+}
+```
 
 | | `register()` | `boot()` |
 |---|---|---|
-| Purpose | Promise a service exists | Use services that others promised |
-| When called | Before other providers boot | After **all** providers have registered |
-| Call `make()`? | ⚠️ Risky — others may not be ready | ✅ Safe |
+| Purpose | Bind services | Use services |
+| Runs | During boot, in provider order | After **every** provider has registered |
+| `$this->registry->make()` | Risky — later providers haven't registered | Safe |
+| Relay static calls (`Config::get()`, ...) | **Throw** — relays aren't connected yet | Work |
 
-## Binding Lifetimes
+Provider order is: core providers, then providers from packages, then yours in `lf-app/Relay/`. Because yours register last, **an app provider can override a core binding** by binding the same key (`'response'`, `'request'`, ...).
 
-| Method | Instances | Built | Cached |
-|---|---|---|---|
-| `instance()` | 1 (yours, pre-built) | Before registration | Yes — immediately |
-| `singleton()` | 1 | On first `make()` | Yes — after first use |
-| `bind()` | N (fresh every call) | On every `make()` | Never |
+## Binding Methods
 
-Prefer `singleton()` for most app services — it's lazy, `instance()` isn't.
+`$this->registry` is a `Laika\Relay\RelayRegistry`:
 
-## Accessing the Container Directly
+| Method | Instances | Built |
+|---|---|---|
+| `singleton(string $key, Closure\|string $concrete, array $args = []): static` | 1, shared | On first `make()` |
+| `bind(string $key, Closure\|string $concrete, array $args = []): static` | New on every `make()` | Every time |
+| `instance(string $key, object $instance): static` | Your object | Already built |
 
-You don't strictly need a `Service` facade — the registry is reachable anywhere:
+`$concrete` is a class name (auto-wired, with `$args` for constructor parameters the container can't resolve) or a closure called as `$concrete($registry, ...$args)`. Prefer `singleton()` for most services — it's lazy.
+
+Other registry methods: `make(string $key): object`, `has(string $key): bool`, `forgetInstance(string $key): static`, `bindings(): array`, `classes(): array`.
+
+## Auto-Wiring
+
+`make()` resolves a key in this order: an existing instance or resolved singleton → a singleton definition → a `bind()` definition → **auto-wiring**, if the key is a class name. Auto-wiring builds the class and fills each constructor parameter from:
+
+1. a binding registered under the parameter's type (a class or interface name);
+2. the class itself, auto-wired recursively;
+3. `$args` by parameter name, then by position;
+4. the default value, or `null` if nullable;
+5. otherwise it throws `RelayException` naming the parameter.
+
+This is what gives controllers, pipelines and filters **constructor injection** — the router builds them through `make()`:
+
+```php
+class InvoiceController
+{
+    public function __construct(private \App\Contracts\PaymentGateway $gateway) {}
+}
+```
+
+An **interface** type must be bound (as in the `Billing` provider above) — interfaces can't be auto-wired.
+
+> **Core services are bound by key, not by class.** `Request`, `Response`, `Config` and the rest live under keys like `'request'` and `'response'`. Type-hinting `Laika\Core\Http\Response` therefore auto-wires a **new** `Response`, not the one the router sends; type-hinting the relay `Laika\Service\Response` gives a proxy object without instance methods. Call relays statically instead. If you want the shared instance injected, alias it in a provider: `$this->registry->singleton(\Laika\Core\Http\Response::class, fn ($r) => $r->make('response'));`
+
+## Using the Container Directly
 
 ```php
 use Laika\Relay\Relay;
 
-$mailer = Relay::getRegistry()->make('mailer.accessor');
+$billing = Relay::getRegistry()->make('billing');
 ```
 
-## Listing Registered Relays
+## Testing With Relays
 
-```bash
-php laika relay:list
+Every relay inherits these static helpers:
+
+| Method | Does |
+|---|---|
+| `X::swap(object $instance): void` | Replace the bound instance, e.g. with a fake |
+| `X::clearResolvedInstance(): void` | Forget the resolved instance; the next call builds a fresh one (and undoes a `swap()`) |
+| `X::relayRoot(): object` | The real underlying instance |
+| `Relay::swapRegistry(RelayRegistry $registry): void` | Replace the whole registry (tests only) |
+
+```php
+Mailer::swap(new FakeMailer());
+// ... exercise code that calls Mailer::send() ...
+Mailer::clearResolvedInstance();
 ```
+
+Singletons keep state for the whole process. In a long-running worker, reset request-bound services between jobs with `X::clearResolvedInstance()` (or `Visitor::refresh()`).
 
 ## CLI Reference
 
 | Command | Description |
 |---|---|
-| `php laika service:make --name=<ServiceClass> --class=<RelayClass>` | Create a service facade + its provider |
-| `php laika service:remove <name>` | Delete a service and its provider |
-| `php laika relay:list` | List registered Relay classes |
+| `php laika service:make --name=<Name> --class=<Concrete\Class>` | Create a relay and its provider |
+| `php laika service:remove <name>` | Delete the relay and its provider |
+| `php laika relay:list` | List every container binding: key → class |
 
-For method chaining, swapping instances at runtime, and mocking a `Relay` in tests, see the [laika-relay README](https://github.com/laikait/laika-relay#method-chaining).
+## See Also
+
+- [Relay List](02_relay-list.md) — every `Laika\Service\*` relay
+- [Request Lifecycle](../01_getting-started/05_request-lifecycle.md#1-boot) — when providers run

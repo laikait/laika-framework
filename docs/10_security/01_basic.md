@@ -1,58 +1,141 @@
 # Security (Shield)
 
-[`laikait/laika-shield`](https://github.com/laikait/laika-shield) is a firewall middleware: country/IP blocking, rate limiting, SQL injection & XSS detection, and general request filtering. `laikait/laika-core` requires it, so it is **already installed** in every Laika project — there is nothing to add. It does nothing until you wire it in, which is what the rest of this page covers.
+[`laikait/laika-shield`](https://github.com/laikait/laika-shield) is a firewall that inspects each request before your routes run: rate limiting, IP and country blocking, SQL injection and XSS detection, and request filtering. It's installed with the framework but **does nothing until you add its pipeline**.
+
+## Quick Start
+
+Register the ready-made pipeline globally — in a route file or a hook file:
+
+```php
+// lf-routes/web.php
+use Laika\Route\Url;
+use Laika\Shield\Pipeline\ShieldPipeline;
+
+Url::globalPipeline(ShieldPipeline::class);
+```
+
+That's all. Every matched route is now checked, with these rules **on by default**:
+
+| Rule | Default |
+|---|---|
+| Rate limiting | 60 requests per 60 seconds, per client IP |
+| SQL injection detection | Query string and body scanned (`strict` off) |
+| XSS detection | Query string and body scanned (headers not scanned) |
+| Request filtering | Blocks `TRACE` and `CONNECT`, and scanner user agents (`sqlmap`, `nikto`, `nessus`, `masscan`, `zgrab`, old `python-requests`) |
+| IP blocking, IP version, country blocking | Off until you configure them |
+
+When a rule blocks a request, `ShieldPipeline` sets the rule's status (403, or 429 for rate limits, with `Retry-After`), sends a JSON body and **stops the request** — no controller, no filters:
+
+```json
+{"status": false, "message": "Too Many Requests.", "ip": "203.0.113.7", "retry_after": 42}
+```
+
+Global pipelines run only for matched routes — static files, 404s and fallbacks aren't inspected.
 
 ## Configuring
 
-There is no config file to publish — every option carries its own default. Create one only if you want your settings in a file, returning the keys you wish to override:
+Change settings with `Laika\Shield\ShieldConfig` in a hook file. It holds one shared configuration, which `ShieldPipeline` reads:
 
 ```php
-// lf-storage/shield.config.php
+// lf-hooks/shield.php
+use Laika\Shield\ShieldConfig;
+
+ShieldConfig::add('rate.limit', 'max.hits', 120);
+ShieldConfig::add('rate.limit', 'storage.dir', APP_PATH . '/lf-storage/shield');
+ShieldConfig::add('ip', 'blocklist', ['1.2.3.4', '192.168.100.0/24']);
+ShieldConfig::add('sql.injection', 'skip.keys', ['password', 'content']);
+ShieldConfig::add('trusted.proxies', ['10.0.0.0/8']);
+ShieldConfig::add('trust.proxy', true);
+```
+
+Or apply a whole array — for example from your own config file:
+
+```php
+// lf-config/shield.php
 return [
-    'ip' => [
-        'blocklist' => ['1.2.3.4', '192.168.100.0/24'],
-        'allowlist' => [],
-    ],
-    'rate.limit' => [
-        'max.hits' => 60,
-        'window'   => 60,
-    ],
-    'sql.injection' => ['skip.keys' => [], 'scan.body' => true, 'strict' => true],
-    'xss'           => ['skip.keys' => [], 'scan.body' => true],
-    'request.filter' => [
-        'blocked.methods' => ['TRACE', 'CONNECT'],
-    ],
+    'trust.proxy'     => true,
+    'trusted.proxies' => ['10.0.0.0/8'],
+    'rate.limit'      => ['max.hits' => 120, 'window' => 60, 'storage.dir' => APP_PATH . '/lf-storage/shield'],
+    'sql.injection'   => ['skip.keys' => ['password', 'content']],
+    'xss'             => ['skip.keys' => ['content']],
+    'request.filter'  => ['blocked.methods' => ['TRACE', 'CONNECT', 'PUT']],
 ];
 ```
 
-See the [laika-shield README](https://github.com/laikait/laika-shield#%EF%B8%8F-configuration-reference) for every available key, including MaxMind GeoLite2 country blocking.
-
-## Wiring It In
-
-`Shield::boot()`/`run()` **throw `Laika\Shield\Exceptions\FirewallException`** when a rule blocks the request (after already setting the appropriate HTTP status code). The natural integration point is a global [pipeline](../03_pipeline/01_basic.md) that catches it and turns it into a response:
-
-```bash
-php laika pipeline:make Shield
+```php
+// lf-hooks/shield.php
+\Laika\Shield\ShieldConfig::instance()->fill(config('shield'));
 ```
+
+`fill()` merges over the defaults — keys you don't mention keep their default values.
+
+> **Behaviours to know:** `ShieldConfig::add()` with an array value **merges** into the existing list rather than replacing it, and an unknown section or key is **silently ignored** — check spelling against the table below. The `Laika\Shield\Service\ShieldConfig` relay forwards to the same shared instance, so either class works.
+
+### Configuration Keys
+
+| Key | Sub-key | Default | |
+|---|---|---|---|
+| `trust.proxy` | — | `false` | Read the client IP from proxy headers |
+| `trusted.proxies` | — | `[]` | Your proxies' IPs/CIDRs. Without them, `CF-Connecting-IP`/`X-Real-IP` are ignored. |
+| `ip.version` | — | `null` | `4` or `6` to allow only that family |
+| `ip` | `blocklist`, `allowlist` | `[]` | IPs or CIDRs |
+| `rate.limit` | `max.hits` | `60` | Requests allowed per window |
+| | `window` | `60` | Seconds |
+| | `storage.dir` | system temp | Where counters are kept — use a directory under `lf-storage/` (php-fpm's private `/tmp` is wiped on restart) |
+| `sql.injection` | `skip.keys` | `[]` | Input keys not scanned |
+| | `scan.body` | `true` | Scan the request body too |
+| | `strict` | `false` | More aggressive patterns (more false positives) |
+| `xss` | `skip.keys`, `scan.body`, `scan.headers` | `[]`, `true`, `false` | |
+| `request.filter` | `blocked.methods` | `['TRACE', 'CONNECT']` | |
+| | `blocked.uri.patterns` | `[]` | Regexes matched against the URI |
+| | `blocked.user.agents` | scanner patterns | Regexes |
+| | `headers.required` | `[]` | Lowercase header names that must be present |
+| | `blocked.header.values` | `[]` | `header => [regex, ...]` |
+| | `content.length.max`, `content.length.min` | `null` | Bytes |
+| `country` | `db`, `blocklist`, `allowlist` | — | Country blocking with a MaxMind database; active only when `db` and a list are set |
+
+A GeoLite2 country database ships with the package at `vendor/laikait/laika-shield/src/Storage/GeoLite2-Country.mmdb`:
+
+```php
+ShieldConfig::add('country', [
+    'db'        => APP_PATH . '/vendor/laikait/laika-shield/src/Storage/GeoLite2-Country.mmdb',
+    'blocklist' => ['KP', 'IR'],
+]);
+```
+
+Other static methods: `ShieldConfig::get(?string $key = null)` (the configuration as arrays), `has(string $key)` (whether the key name is valid), `keys()`, `reset()`.
+
+**Rich-text fields:** SQLi/XSS detection scans every input by default, so a CMS editor field or a password containing `<` or `'` can be blocked. Add such fields to `skip.keys`.
+
+## Different Rules for Different Routes
+
+`ShieldPipeline` accepts a config array in its constructor, but a pipeline registered by name is built without arguments. For per-route rules, write a small pipeline around the fluent builder:
 
 ```php
 namespace App\Pipeline;
 
-use Laika\Shield\Shield;
-use Laika\Shield\Exceptions\FirewallException;
 use Laika\Route\Contracts\PipelineInterface;
+use Laika\Shield\Shield as Firewall;          // alias — the class name would clash
+use Laika\Shield\Exceptions\{FirewallException, RateLimitExceededException};
+use Laika\Service\Response;
 
-class Shield implements PipelineInterface
+class StrictShield implements PipelineInterface
 {
     public function handle(callable $next, array &$params): ?string
     {
         try {
-            // boot() takes no arguments and reads the shared ShieldConfig.
-            // To apply an array, hand it to fromConfig() instead:
-            Shield::fromConfig(require APP_PATH . '/lf-storage/shield.config.php')->run();
+            (new Firewall())
+                ->trustProxy(true, ['10.0.0.0/8'])     // call before adding rules
+                ->rateLimit(maxHits: 10, windowSecs: 60, storageDir: APP_PATH . '/lf-storage/shield')
+                ->detectSqlInjection(skipKeys: ['password'])
+                ->detectXss()
+                ->run();
         } catch (FirewallException $e) {
-            // Status code is already set by Shield; just supply a body.
-            return $e->getMessage();
+            if ($e instanceof RateLimitExceededException) {
+                Response::setHeader('Retry-After', (string) $e->getRetryAfter());
+            }
+            Response::setStatus($e->getCode())->setContentType('application/json');
+            return $e->payload();
         }
 
         return $next();
@@ -61,40 +144,29 @@ class Shield implements PipelineInterface
 ```
 
 ```php
-// lf-routes/web.php or a dedicated bootstrap file
-Url::globalPipeline(['Shield']);
+Url::post('/login', 'LoginController@login')->pipeline(['StrictShield']);
 ```
 
-Running it as a **global** pipeline means every request is checked before any route-specific pipeline or controller runs.
+This version returns the error as a normal response, so your filters still run.
 
-## Fluent Builder (alternative)
+### Fluent Builder
 
-For programmatic configuration instead of a config file:
+| Method | |
+|---|---|
+| `trustProxy(bool $trust = true, array $trustedProxies = []): static` | **Call first** — rules capture it when added |
+| `blockIps(array $blocklist = [], array $allowlist = []): static` / `allowIps(array $allowlist): static` | |
+| `requireIpVersion(int $version): static` | |
+| `blockCountries(string $mmdb, array $blocklist = [], array $allowlist = []): static` | |
+| `rateLimit(int $maxHits = 60, int $windowSecs = 60, ?string $storageDir = null): static` | |
+| `detectSqlInjection(array $skipKeys = [], bool $scanBody = true, bool $strict = false): static` | |
+| `detectXss(array $skipKeys = [], bool $scanBody = true, bool $scanHeaders = false): static` | |
+| `filterRequests(array $blockedMethods = [], array $blockedUriPatterns = [], array $blockedUserAgentPatterns = [], array $requiredHeaders = [], array $blockedHeaderValues = [], ?int $maxContentLength = null, ?int $minContentLength = null): static` | |
+| `addRule(RuleInterface $rule): static` | A custom rule |
+| `run(): void` | Check every rule; throws on the first failure |
+| `static boot(): void` | Build from the shared `ShieldConfig` and run |
+| `static fromConfig(ShieldConfig\|array $config = []): static` | Build (without running) from a config object or array |
 
-```php
-use Laika\Shield\Shield;
-
-(new Shield())
-    ->trustProxy()
-    ->blockIps(['1.2.3.4', '10.10.0.0/16'])
-    ->rateLimit(maxHits: 100, windowSecs: 60)
-    ->detectSqlInjection(skipKeys: ['password'])
-    ->detectXss(skipKeys: ['html_content'])
-    ->run(); // throws FirewallException on a match
-```
-
-## Runtime Config Changes
-
-`Laika\Shield\ShieldConfig` gives dot-notation access without touching the config file directly:
-
-```php
-use Laika\Shield\ShieldConfig;
-
-ShieldConfig::add('rate.limit', 'max.hits', 30);
-ShieldConfig::add('sql.injection', 'skip.keys', ['password', 'token']);
-
-Shield::boot(); // no arguments - always reads the shared ShieldConfig
-```
+On a block, `run()` sets the HTTP status (if headers haven't been sent) and throws `FirewallException` — or `RateLimitExceededException` (status 429, `getRetryAfter(): int`) for rate limits. Both have `payload(): string` (JSON) and `toArray(): array`.
 
 ## Custom Rules
 
@@ -103,15 +175,21 @@ use Laika\Shield\Contract\RuleInterface;
 
 class BlockBadReferrer implements RuleInterface
 {
-    public function passes(): bool { /* ... */ return true; }
+    public function passes(): bool
+    {
+        return !str_contains($_SERVER['HTTP_REFERER'] ?? '', 'spam.example');
+    }
     public function message(): string { return 'Access Denied.'; }
     public function statusCode(): int { return 403; }
     public function additionalHeader(): void {}
 }
 
-(new Shield())->addRule(new BlockBadReferrer())->run();
+(new \Laika\Shield\Shield())->addRule(new BlockBadReferrer())->run();
 ```
 
-## Full Reference
+## See Also
 
-See the [laika-shield README](https://github.com/laikait/laika-shield) for the complete rule set (`IpRule`, `IpVersionRule`, `RateLimitRule`, `CountryRule`, `SqlInjectionRule`, `XssRule`, `RequestFilterRule`), the `IpHelper` utility class, and architecture overview.
+- [CSRF & CORS](02_csrf-and-cors.md)
+- [Encryption & Tokens](03_encryption-and-tokens.md)
+- [Pipelines](../03_pipeline/01_basic.md)
+- [laika-shield README](https://github.com/laikait/laika-shield) — rule internals and `IpHelper`

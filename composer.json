@@ -5,7 +5,8 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "App\\": "lf-app/"
+            "App\\": "lf-app/",
+            "Laika\\Cache\\": "vendor/laikait/laika-cache/src/"
         }
     },
     "authors": [
@@ -21,7 +22,7 @@
     "minimum-stability": "stable",
     "require": {
         "php": ">=8.1",
-        "laikait/laika-core": "^4.6"
+        "laikait/laika-core": "5.1.*"
     },
     "scripts": {
         "post-autoload-dump": [

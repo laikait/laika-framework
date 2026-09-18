@@ -1,10 +1,6 @@
 # Filters
 
-A filter is middleware that runs **after** the controller — useful for logging, response shaping, or auditing once you already have a response.
-
-## Location
-
-`App\Filter` namespace, files in `lf-app/Filter`.
+A filter is middleware that runs **after** the controller. It receives the response string and can log it, change it, or replace it.
 
 ## Create via CLI
 
@@ -12,7 +8,9 @@ A filter is middleware that runs **after** the controller — useful for logging
 php laika filter:make LogAccess
 ```
 
-## Sample
+Filters live in `lf-app/Filter/`, namespace `App\Filter`.
+
+## Anatomy
 
 ```php
 namespace App\Filter;
@@ -21,118 +19,144 @@ use Laika\Route\Contracts\FilterInterface;
 
 class LogAccess implements FilterInterface
 {
-    /**
-     * @param callable $next
-     * @param mixed $response
-     * @param array $params
-     */
     public function terminate(callable $next, ?string $response, array &$params): ?string
     {
-        // Write Code From Here
+        // ... your code ...
 
-        return $next($response);
+        return $next($response);   // pass the (possibly changed) response on
     }
 }
 ```
 
-## Register
+- `$response` — the controller's return value (or a pipeline's short-circuit string). `null` when nothing was returned.
+- `$params` — the same array the pipelines and controller received, by reference.
+- Whatever the last filter returns is sent.
+
+## Attaching Filters
 
 ```php
-Url::get('/', function () {
-    // controller logic
-})->filter(LogAccess::class);
+use Laika\Route\Url;
+
+Url::get('/', 'HomeController@index')->filter(LogAccess::class);
+Url::get('/dashboard', 'DashboardController@index')->filter(['LogAccess', 'Minify']);
+
+// Every route in the application
+Url::globalFilter(['LogAccess']);
 ```
 
-## Multiple Filters
+Short names resolve to `App\Filter\...`; a fully qualified class name is used as-is.
+
+## Return Behavior
+
+| In `terminate()` you... | Remaining filters | Response sent |
+|---|---|---|
+| `return $next($response);` | run | the response, as passed along |
+| `return $next($response, false);` | skipped | `$response` |
+| `return $next('other');` | run | `'other'` replaces the response |
+| `return $next('other', false);` | skipped | `'other'` |
+| `return 'other';` (no `$next`) | skipped | `'other'` |
+
+## Examples
+
+**Log every response:**
 
 ```php
-Url::get('/dashboard', function () {
-    // controller logic
-})->filter([LogAccess::class, AuditFilter::class]);
-```
-
-## Dependencies
-
-Type hint what the filter needs in its constructor and the container builds it:
-
-```php
-namespace App\Filter;
-
-use Laika\Route\Contracts\FilterInterface;
-use App\Service\LoggerService;
-
-class LogAccess implements FilterInterface
+public function terminate(callable $next, ?string $response, array &$params): ?string
 {
-    public function __construct(private LoggerService $log) {}
+    error_log(sprintf('%s %s -> %d bytes',
+        $_SERVER['REQUEST_METHOD'] ?? '-', $_SERVER['REQUEST_URI'] ?? '-', strlen((string) $response)));
 
-    public function terminate(callable $next, ?string $response, array &$params): ?string
-    {
-        $this->log->write($params);
-
-        return $next($response);
-    }
+    return $next($response);
 }
 ```
 
-Concrete classes auto-wire with no registration; interface type hints must be bound in a [RelayProvider](../07_services-and-relay/01_basic.md). A `singleton()` binding is the same instance the pipelines and controller on that route received. See [Pipelines → Dependencies](../03_pipeline/01_basic.md) for the full rules.
+**Add a header:**
 
-`terminate()` keeps its fixed signature — the constructor is the injection point.
+```php
+use Laika\Service\Response;
+
+public function terminate(callable $next, ?string $response, array &$params): ?string
+{
+    Response::setHeader('X-Robots-Tag', 'noindex');
+    return $next($response);
+}
+```
+
+**Maintenance mode:**
+
+```php
+public function terminate(callable $next, ?string $response, array &$params): ?string
+{
+    if (option_bool('maintenance')) {
+        \Laika\Service\Response::setStatus(503);
+        return '<h1>Down for maintenance</h1>';
+    }
+
+    return $next($response);
+}
+```
 
 ## Passing Config Args
 
-Inline args are **route params, not constructor arguments** — they arrive in `$params`, and are unaffected by dependency injection:
+Same syntax as pipelines. The values arrive in `$params`, and are strings:
 
 ```php
 Url::get('/reports', 'ReportController@index')->filter(['LogAccess|level=info']);
 ```
 
 ```php
-namespace App\Filter;
+public function terminate(callable $next, ?string $response, array &$params): ?string
+{
+    error_log('level=' . ($params['level'] ?? 'default'));
+    return $next($response);
+}
+```
 
-use Laika\Route\Contracts\FilterInterface;
+Filter args are merged when that filter runs, so only later filters see them — never the controller.
+
+## Dependencies
+
+Filters are built through the container, so type-hint dependencies in the constructor:
+
+```php
+use App\Support\AuditLog;
 
 class LogAccess implements FilterInterface
 {
+    public function __construct(private AuditLog $log) {}
+
     public function terminate(callable $next, ?string $response, array &$params): ?string
     {
-        error_log('level=' . ($params['level'] ?? 'default'));
-
+        $this->log->write($params);
         return $next($response);
     }
 }
 ```
 
-## Global Filters
+The rules are the same as for [pipelines](../03_pipeline/01_basic.md#dependencies): concrete classes auto-wire, interfaces must be bound in a relay provider, and relays should be called statically rather than injected.
 
-Apply a filter to every route in the application:
+## Order and Scope
 
-```php
-Url::globalFilter(['LogResponse']);
-```
-
-## Return Behavior
-
-| Return value | Chain continues? | Response |
-|---|---|---|
-| `$next($response)` | Yes | Original response passed forward |
-| `$next($response, false)` | No | Original response passed forward |
-| `$next('anytext')` | Yes | Controller's response is replaced with `'anytext'` |
-| `$next('anytext', false)` | No | Controller's response is replaced with `'anytext'` |
+- **Order:** global filters → group filters (`Handler::registerGroup()`) → route `->filter()` → group-chained `->filter()`.
+- Filters form an onion: code after `$next($response)` runs in reverse order.
+- Filters run on a controller's response and on a pipeline's short-circuit string. They do **not** run on 404 pages, fallbacks, or static files.
 
 ## Rules
 
-- Implements `Laika\Route\Contracts\FilterInterface`.
-- `terminate(callable $next, ?string $response, array &$params): ?string`
-- `$params` — passed by reference, same array threaded through pipelines and the controller.
-- Runs after the controller, in the order registered.
+- Implement `Laika\Route\Contracts\FilterInterface` (any class with a matching `terminate()` method is accepted).
+- Signature: `terminate(callable $next, ?string $response, array &$params): ?string`
+- An unknown filter name throws `FilterException` (status 500).
 
 ## CLI Reference
 
 | Command | Description |
 |---|---|
 | `php laika filter:make <name>` | Create a filter class |
-| `php laika filter:list` | List registered filter classes |
+| `php laika filter:list` | List filter classes |
 | `php laika filter:remove <name>` | Delete a filter class |
 | `php laika filter:rename --old=<name> --new=<name>` | Rename a filter class |
 
-See [Pipelines](../03_pipeline/01_basic.md) for pre-controller middleware.
+## See Also
+
+- [Pipelines](../03_pipeline/01_basic.md) — middleware before the controller
+- [Responses](../02_routing/04_responses.md)
