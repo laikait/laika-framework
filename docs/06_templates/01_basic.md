@@ -205,13 +205,15 @@ To use the same filters in every view, create the template in one place — a sm
 
 ## Caching Fragments
 
-`{% cache key [ttl] %}...{% endcache %}` stores the rendered HTML, so the body — including any query or function call inside it — is skipped on a hit:
+{% raw %}`{% cache key [ttl] %}...{% endcache %}`{% endraw %} stores the rendered HTML, so the body — including any query or function call inside it — is skipped on a hit:
 
+{% raw %}
 ```twig
 {% cache 'product-' ~ product.id 600 %}
     {{ product.description }}
 {% endcache %}
 ```
+{% endraw %}
 
 Put every variable the fragment depends on into the key. See [Caching → Template Fragments](../20_cache/01_basic.md#template-fragments).
 

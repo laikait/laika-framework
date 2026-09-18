@@ -134,6 +134,7 @@ Responses carry an `X-Laika-Cache: HIT` or `MISS` header. They expire on their T
 
 Cache part of a Twig template:
 
+{% raw %}
 ```twig
 {% cache 'sidebar' %}
     {% for post in popular_posts() %} ... {% endfor %}
@@ -143,6 +144,7 @@ Cache part of a Twig template:
     ...
 {% endcache %}
 ```
+{% endraw %}
 
 The first argument is the key (any expression); the optional second is a TTL in seconds. On a hit the body does not run, so any query or function call inside it is skipped. Output is escaped exactly as without the tag, and tags may nest.
 
