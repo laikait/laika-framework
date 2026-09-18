@@ -1,10 +1,6 @@
 # Pipelines
 
-A pipeline is middleware that runs **before** the controller — the natural place for authentication, authorization, or request validation that can short-circuit the response.
-
-## Location
-
-`App\Pipeline` namespace, files in `lf-app/Pipeline`.
+A pipeline is middleware that runs **before** the controller — the place for authentication, authorization, rate limiting, or any check that may stop the request.
 
 ## Create via CLI
 
@@ -12,7 +8,9 @@ A pipeline is middleware that runs **before** the controller — the natural pla
 php laika pipeline:make Authenticate
 ```
 
-## Sample
+Pipelines live in `lf-app/Pipeline/`, namespace `App\Pipeline`.
+
+## Anatomy
 
 ```php
 namespace App\Pipeline;
@@ -21,58 +19,85 @@ use Laika\Route\Contracts\PipelineInterface;
 
 class Authenticate implements PipelineInterface
 {
-    /**
-     * @param callable $next
-     * @param array $params
-     * @return ?string
-     */
     public function handle(callable $next, array &$params): ?string
     {
-        // Start Code From Here....
+        // ... your check ...
 
-        return $next();
+        return $next();   // continue to the next pipeline, then the controller
     }
 }
 ```
 
-## Register
+- `$next` — call it to continue. Whatever it returns is the response so far.
+- `$params` — route parameters plus pipeline args, **passed by reference** through the whole chain: pipeline → controller → filters. Write to it to hand data forward.
+- Return a **string** to stop the chain and respond with it.
+
+## Attaching Pipelines
 
 ```php
-Url::get('/', function () {
-    // controller logic
-})->pipeline(Authenticate::class);
+use Laika\Route\Url;
+use App\Pipeline\Authenticate;
+
+Url::get('/dashboard', 'DashboardController@index')->pipeline(Authenticate::class);
+Url::get('/dashboard', 'DashboardController@index')->pipeline(['Authenticate', 'VerifiedEmail']);
+Url::get('/dashboard', 'DashboardController@index', ['Authenticate']); // third argument
+
+// Every route in the application
+Url::globalPipeline(['Authenticate']);
 ```
 
-## Multiple Pipelines
+For groups, see [Routing → Middleware on Groups](../02_routing/01_basic.md#middleware-on-groups).
+
+**Name resolution:** a short name (`'Authenticate'`, `'Admin\Role'`) resolves to `App\Pipeline\...`. A fully qualified class name (`Authenticate::class`, `\Laika\Shield\Pipeline\ShieldPipeline::class`) is used as-is.
+
+## Return Behavior
+
+| In `handle()` you... | Remaining pipelines | Controller | Filters | Response |
+|---|---|---|---|---|
+| `return $next();` | run | runs | run | the controller's |
+| `return $next(false);` | **skipped** | **runs** | run | the controller's |
+| `return 'text';` | skipped | skipped | run | `'text'` |
+| `return null;` (no `$next`) | skipped | skipped | run | nothing is sent |
+
+Code after `$next()` runs once everything later in the chain has finished, so a pipeline can also inspect or wrap the response:
 
 ```php
-Url::get('/dashboard', function () {
-    // controller logic
-})->pipeline([Authenticate::class, VerifiedEmail::class]);
+public function handle(callable $next, array &$params): ?string
+{
+    $start = microtime(true);
+    $response = $next();
+    error_log('took ' . round(microtime(true) - $start, 3) . 's');
+    return $response;
+}
 ```
 
-## Dependencies
+## Stopping a Request
 
-Type hint what the pipeline needs in its constructor. The container builds it — nothing else changes, and the route API is untouched.
+Set the status on the `Response` relay — a bare `http_response_code()` is overwritten when the response is sent:
 
 ```php
-namespace App\Pipeline;
-
-use Laika\Route\Contracts\PipelineInterface;
-use App\Service\AuthService;
-use Laika\Service\Config;
+use Laika\Service\{Response, Redirect};
+use Laika\Session\Session;
 
 class Authenticate implements PipelineInterface
 {
-    public function __construct(
-        private AuthService $auth,
-        private Config $config,
-    ) {}
-
     public function handle(callable $next, array &$params): ?string
     {
-        if (!$this->auth->check()) {
-            return redirect($this->config->get('app.login_url'));
+        if (!Session::has('user_id')) {
+            Redirect::to('login');      // named route; sends Location and exits
+        }
+
+        return $next();
+    }
+}
+
+class AdminOnly implements PipelineInterface
+{
+    public function handle(callable $next, array &$params): ?string
+    {
+        if (Session::get('role') !== 'admin') {
+            Response::setStatus(403);
+            return 'Forbidden';          // stops here; filters still run
         }
 
         return $next();
@@ -80,77 +105,114 @@ class Authenticate implements PipelineInterface
 }
 ```
 
-Three rules:
+For APIs, set the content type too: `Response::setStatus(401)->setContentType('application/json'); return json_encode(['error' => 'Unauthenticated']);`
 
-1. **Concrete classes need no registration.** They are auto-wired on demand, recursively — a dependency's own dependencies resolve too.
-2. **Interface type hints must be bound** in a [RelayProvider](../07_services-and-relay/01_basic.md), because an interface cannot be auto-wired:
+## Passing Config Args
+
+Append `|key=value,key2=value2` to a pipeline name. The values arrive in `$params`:
+
+```php
+Url::get('/admin', 'AdminController@index')->pipeline(['Role|role=admin']);
+Url::get('/reports', 'ReportController@index')->pipeline(['Throttle|limit=60,window=60']);
+Url::get('/beta', 'BetaController@index')->pipeline(['Feature|beta']); // bare key = true
+```
+
+```php
+class Role implements PipelineInterface
+{
+    public function handle(callable $next, array &$params): ?string
+    {
+        if (Session::get('role') !== ($params['role'] ?? null)) {
+            Response::setStatus(403);
+            return 'Forbidden';
+        }
+
+        return $next();
+    }
+}
+```
+
+- Values are always **strings** (or `true` for a bare key). Cast numbers yourself.
+- Don't put spaces after the commas — keys and values aren't trimmed, so `'A|x=1, y=2'` produces the key `" y"`.
+- Values can't contain commas or `=`.
+- Args are merged into `$params` when the pipeline runs, so later pipelines and the controller see them too — and they overwrite a route parameter with the same name.
+
+## Passing Data to the Controller
+
+Because `$params` is shared by reference, a pipeline can load something once and hand it to the controller by name:
+
+```php
+// Pipeline
+public function handle(callable $next, array &$params): ?string
+{
+    $params['user'] = (new UsersModel())->find((int) Session::get('user_id'));
+    return $next();
+}
+
+// Controller — $user is filled from $params by name
+public function dashboard($user): string { /* ... */ }
+```
+
+## Dependencies
+
+Pipelines are built through the service container, so type-hint what you need in the constructor:
+
+```php
+namespace App\Pipeline;
+
+use Laika\Auth\AuthManager;
+use Laika\Route\Contracts\PipelineInterface;
+use Laika\Service\Redirect;
+
+class Authenticate implements PipelineInterface
+{
+    public function __construct(private AuthManager $auth) {}
+
+    public function handle(callable $next, array &$params): ?string
+    {
+        if ($this->auth->guard('web')->user() === null) {
+            Redirect::to('login');   // a named route; sends Location and exits
+        }
+
+        return $next();
+    }
+}
+```
+
+> `Redirect::to()` takes a **route name** or an **absolute URL** — not a path. For a path, build the URL first: `Redirect::to(\Laika\Service\Url::build('login'))`.
+
+The rules:
+
+1. **Concrete classes need no registration.** They're auto-wired on demand, recursively.
+2. **Interfaces must be bound** in a [relay provider](../07_services-and-relay/01_basic.md):
 
    ```php
    $this->registry->singleton(PaymentGateway::class, StripeGateway::class);
    ```
 
-   An unbound one throws at the boundary naming the parameter, rather than injecting `null`.
-3. **A `singleton()` binding is shared** across every pipeline, filter and controller in the request. The pipeline object itself is always built fresh.
+   An unbound interface throws, naming the parameter — unless the parameter is nullable or has a default, in which case you silently get `null` or the default.
+3. **A `singleton()` bound under a class name** is shared by every pipeline, filter and controller in the request.
+4. **Don't type-hint relays or core classes** (`Laika\Service\Config`, `Laika\Core\Http\Response`). Core services are bound under keys, not class names, so you'd get a fresh object or a proxy with no instance methods. Call relays statically, as above.
 
-`handle()` keeps its fixed signature — the constructor is the injection point. Filters work the same way, see [Filters](../04_filter/01_basic.md).
-
-## Passing Config Args
-
-Pipelines can be referenced by short class name with inline `key=value` config, available in `$params`. These are **route params, not constructor arguments** — the two channels are independent, so a pipeline can use both:
-
-```php
-Url::get('/admin', 'AdminController@index')->pipeline(['Role|role=admin']);
-Url::get('/reports', 'ReportController@index')->pipeline(['Throttle|limit=60,window=60']);
-```
-
-```php
-namespace App\Pipeline;
-
-use Laika\Route\Contracts\PipelineInterface;
-
-class Role implements PipelineInterface
-{
-    public function handle(callable $next, array &$params): ?string
-    {
-        if (($_SESSION['role'] ?? null) !== ($params['role'] ?? null)) {
-            http_response_code(403);
-            return 'Forbidden'; // stops the chain, this string is the response
-        }
-
-        return $next();
-    }
-}
-```
-
-## Global Pipelines
-
-Apply a pipeline to every route in the application:
-
-```php
-Url::globalPipeline(['CSRF', 'CORS']);
-```
-
-## Return Behavior
-
-| Return value | Chain continues? | Controller runs? | Output |
-|---|---|---|---|
-| `$next()` | Yes | Yes (if last pipeline) | Controller's return value |
-| `$next(false)` | No | No | Controller's return value |
-| `'anytext'` | No | No | Ignores the controller, returns the string itself |
+`handle()` keeps its fixed signature — the constructor is the injection point. A pipeline is instantiated only when the chain reaches it.
 
 ## Rules
 
-- Implements `Laika\Route\Contracts\PipelineInterface`.
-- `handle(callable $next, array &$params): ?string`
-- `$params` — route params + pipeline config args, merged and passed **by reference** through the whole chain (pipeline → controller → filter). Mutate it to pass data forward.
+- Implement `Laika\Route\Contracts\PipelineInterface` (any class with a matching `handle()` method is accepted).
+- Signature: `handle(callable $next, array &$params): ?string`
+- An unknown pipeline name throws `PipelineException` (status 500) when a request reaches it.
 
 ## CLI Reference
 
 | Command | Description |
 |---|---|
 | `php laika pipeline:make <name>` | Create a pipeline class |
-| `php laika pipeline:list` | List registered pipeline classes |
+| `php laika pipeline:list` | List pipeline classes |
 | `php laika pipeline:remove <name>` | Delete a pipeline class |
-| `php laika pipeline:rename <old> <new>` | Rename a pipeline class |
+| `php laika pipeline:rename --old=<name> --new=<name>` | Rename a pipeline class |
 
-See [Filters](../04_filter/01_basic.md) for post-controller middleware, and [Routing](../02_routing/01_basic.md#pipelines--filters) for how attachment interacts with route groups.
+## See Also
+
+- [Filters](../04_filter/01_basic.md) — middleware after the controller
+- [Security (Shield)](../10_security/01_basic.md) — the ready-made firewall pipeline
+- [Authentication](../09_authentication/01_basic.md#protecting-routes)
