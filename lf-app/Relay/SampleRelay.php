@@ -10,8 +10,8 @@ declare(strict_types=1);
 
 namespace App\Relay;
 
-use Laika\Relay\RelayProvider;
-use Laika\Core\App\Template;
+use Laika\Engine\Relay\RelayProvider;
+use Laika\Engine\App\Template;
 
 class SampleRelay extends RelayProvider
 {

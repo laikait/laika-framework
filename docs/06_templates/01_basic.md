@@ -1,9 +1,9 @@
 # Templates
 
-Views are rendered through `Laika\Core\App\Template`, a thin wrapper around [Twig 3](https://twig.symfony.com/). Templates live in `template/`; compiled Twig goes to `lf-storage/cache/template/`.
+Views are rendered through `Laika\Engine\App\Template`, a thin wrapper around [Twig 3](https://twig.symfony.com/). Templates live in `template/`; compiled Twig goes to `lf-storage/cache/template/`.
 
 ```php
-use Laika\Core\App\Template;
+use Laika\Engine\App\Template;
 
 $tpl = new Template();
 $tpl->assign('title', 'Orders');
@@ -29,7 +29,7 @@ The name must be letters and underscores only — put the directory in `--path`,
 ```php
 namespace App\Controller;
 
-use Laika\Core\App\Template;
+use Laika\Engine\App\Template;
 
 class HomeController
 {
@@ -110,7 +110,7 @@ The older `extension()` setter is deprecated. It raises `E_USER_DEPRECATED`, whi
 
 | Variable | Contents |
 |---|---|
-| `local` | The selected language (`Laika\Service\Local::get()`) |
+| `local` | The selected language (`Laika\Engine\Services\Local::get()`) |
 | `page` | `{ number, next, previous }` — pagination for `?page=` |
 | `input` | Request input: {% raw %}`{{ input.email }}`{% endraw %}; {% raw %}`{{ input.tags(0) }}`{% endraw %} for an array item. A missing key reads as `''`. |
 | `errors` | Validation errors from `Request::validate()` |

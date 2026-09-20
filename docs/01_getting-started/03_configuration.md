@@ -1,6 +1,6 @@
 # Configuration
 
-All configuration lives in `lf-config/*.php`. There is no `.env` file. Each file returns a plain PHP array, and you read it with the `config()` helper or the `Laika\Service\Config` relay.
+All configuration lives in `lf-config/*.php`. There is no `.env` file. Each file returns a plain PHP array, and you read it with the `config()` helper or the `Laika\Engine\Services\Config` relay.
 
 ```php
 config('app', 'name');                  // 'Laika Framework'
@@ -23,7 +23,7 @@ config(string $name, ?string $key = null, mixed $default = null): mixed
 The same API is on the relay, plus a few extras:
 
 ```php
-use Laika\Service\Config;
+use Laika\Engine\Services\Config;
 
 Config::get('app', 'name');
 Config::has('mail', 'host');     // file and key exist?
@@ -44,12 +44,12 @@ defined('APP_PATH') || http_response_code(403).die('403 Direct Access Denied!');
 |---|---|
 | [`app.php`](#lf-configappphp) | App name, trusted proxies (URL/IP/cookie detection) |
 | [`assets.php`](#lf-configassetsphp) | The front controller, when it serves static files |
-| [`database.php`](#lf-configdatabasephp) | laika-model connections |
-| [`auth.php`](#lf-configauthphp) | laika-auth guards |
-| [`mail.php`](#lf-configmailphp) | Your code, when it builds a `Laika\Mailman\Mailer` |
+| [`database.php`](#lf-configdatabasephp) | Database connections |
+| [`auth.php`](#lf-configauthphp) | Auth guards |
+| [`mail.php`](#lf-configmailphp) | Your code, when it builds a `Laika\Engine\Mailman\Mailer` |
 | [`redis.php`](#lf-configredisphp) | Redis session/queue drivers, `RedisStorage`, `RedisConnection` |
 | [`memcached.php`](#lf-configmemcachedphp) | Memcached session driver, `MemcachedStorage` |
-| [`queue.php`](#lf-configqueuephp) | The `worker` executable, `queue:*` commands, `Laika\Core\Worker\Queue` |
+| [`queue.php`](#lf-configqueuephp) | The `worker` executable, `queue:*` commands, `Laika\Engine\Worker\Queue` |
 | [`s3.php`](#lf-configs3php) | `S3Storage`, `S3Connection` |
 
 Two more places hold settings that aren't arrays: [`lf-inc/const.php`](#lf-incconstphp) and your [hook files](#settings-that-belong-in-a-hook-file).
@@ -77,7 +77,7 @@ return [
 
 ## `lf-config/assets.php`
 
-Which static files the framework will hand out, and how long a browser may keep them. Every request reaches `index.php` — the rewrite rules do not let the web server serve a file directly — so `Laika\Route\Asset` is the only gatekeeper, and this file is what it reads.
+Which static files the framework will hand out, and how long a browser may keep them. Every request reaches `public/index.php` — the rewrite rules do not let the web server serve a file directly — so `Laika\Engine\Route\Asset` is the only gatekeeper, and this file is what it reads.
 
 ```php
 return [
@@ -120,7 +120,7 @@ return [
 ];
 ```
 
-An extension in both `extensions` and `blocked` is refused — `blocked` always wins. `Content-Type` still comes from `Laika\Service\MimeType`; `MimeType::register()` only adds a content type, it does not make a type servable. Only this file decides that.
+An extension in both `extensions` and `blocked` is refused — `blocked` always wins. `Content-Type` still comes from `Laika\Engine\Services\MimeType`; `MimeType::register()` only adds a content type, it does not make a type servable. Only this file decides that.
 
 Three rules are enforced in code and no config can loosen them:
 
@@ -173,7 +173,7 @@ return [
 ];
 ```
 
-`driver` accepts every laika-model driver: `mysql`, `mariadb`, `pgsql`, `sqlite`, `sqlsrv`, `oci`, `firebird`. See the [laika-model README](https://github.com/laikait/laika-model) for per-driver keys (`charset`, `file` for SQLite, and so on).
+`driver` accepts every Model driver: `mysql`, `mariadb`, `pgsql`, `sqlite`, `sqlsrv`, `oci`, `firebird`. See the [Model module docs](https://github.com/laikait/laika-engine/tree/main/docs/model) for per-driver keys (`charset`, `file` for SQLite, and so on).
 
 Add a key per extra connection (for example `'analytics'`). It's registered under its own name the first time a model, schema, session driver, token guard or the queue uses it. See [Models → Multiple Connections](../05_models/01_basic.md#multiple-connections).
 
@@ -193,7 +193,7 @@ return [
 ];
 ```
 
-Each entry needs a `driver` (`session`, `cookie` or `token`). Token guards need a `provider` that is a `Laika\Model\Model` subclass, and accept optional `connection` and `install` keys. See [Authentication](../09_authentication/01_basic.md).
+Each entry needs a `driver` (`session`, `cookie` or `token`). Token guards need a `provider` that is a `Laika\Engine\Model\Model` subclass, and accept optional `connection` and `install` keys. See [Authentication](../09_authentication/01_basic.md).
 
 ## `lf-config/mail.php`
 
@@ -205,7 +205,7 @@ return [
 ];
 ```
 
-Nothing in the framework reads this file on its own. You pass it to `Laika\Mailman\Mailer` yourself: `new Mailer(config('mail'))`.
+Nothing in the framework reads this file on its own. You pass it to `Laika\Engine\Mailman\Mailer` yourself: `new Mailer(config('mail'))`.
 
 The commented keys are the Mailer's own names; anything else is silently ignored. A working SMTP file:
 
@@ -290,7 +290,7 @@ See [Queue](../12_queue/01_basic.md) for what each driver needs and how to run t
 
 ## `lf-config/s3.php`
 
-Used by `Laika\Core\Storage\S3Storage` for S3 and S3-compatible storage (MinIO, Cloudflare R2, DigitalOcean Spaces).
+Used by `Laika\Engine\Storage\S3Storage` for S3 and S3-compatible storage (MinIO, Cloudflare R2, DigitalOcean Spaces).
 
 ```php
 return [
@@ -324,7 +324,7 @@ define('CLI_MEMORY_LIMIT', '256M');
 | `DEBUG` | `true`: Whoops error pages, errors logged to `lf-logs/`, the resource manifest ignored. `false`: generic error page, **nothing logged**, the compiled manifest in `lf-storage/cache/resources.php` used. **Set it to `false` in production.** |
 | `MEMORY_LIMIT` / `CLI_MEMORY_LIMIT` | Applied to `memory_limit` at boot: `MEMORY_LIMIT` for web requests, `CLI_MEMORY_LIMIT` for `php laika` and the worker. They can only lower the `php.ini` limit, never raise it. See [Deployment](../13_deployment/01_basic.md#memory-limits). |
 
-If `DEBUG` isn't defined, laika-core defines it as `true`.
+If `DEBUG` isn't defined, the Core module defines it as `true`.
 
 ## Settings That Belong in a Hook File
 
@@ -332,7 +332,7 @@ Some settings are made with a method call rather than a config key. Put them in 
 
 ```php
 // lf-hooks/app.php
-use Laika\Service\{CORS, Date, Init, Local};
+use Laika\Engine\Services\{CORS, Date, Init, Local};
 
 // Session driver — required before the first Session:: call
 Init::file();
@@ -370,7 +370,7 @@ class LANG
 
 Select and load one in a hook file (`Local::set('en'); Local::load();`), then call `local('greeting', 'Ann')` in PHP or {% raw %}`{{ 'local'|hook('greeting', 'Ann') }}`{% endraw %} in Twig.
 
-| `Laika\Service\Local` method | Does |
+| `Laika\Engine\Services\Local` method | Does |
 |---|---|
 | `set(string $lang = 'en'): void` | Selects `xx` or `xx-yy`; anything else throws `LocalException` |
 | `get(): string` | The selected language (`en` by default); templates get it as `local` |

@@ -14,7 +14,7 @@ declare(strict_types=1);
 defined('APP_PATH') || http_response_code(403).die('403 Direct Access Denied!');
 
 /**
- * Passed as-is to Laika\Mailman\Mailer: new Mailer(config('mail')).
+ * Passed as-is to Laika\Engine\Mailman\Mailer: new Mailer(config('mail')).
  * Key names are the Mailer's own; anything else is ignored.
  */
 return [

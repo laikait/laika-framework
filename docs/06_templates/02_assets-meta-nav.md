@@ -25,7 +25,7 @@ enqueue_script('app', 'assets/js/app.js', '1.0.0', defer: true);
 ```
 {% endraw %}
 
-| Helper | Relay method (`Laika\Service\Asset`) |
+| Helper | Relay method (`Laika\Engine\Services\Asset`) |
 |---|---|
 | `enqueue_style(string $handle, string $src, string $version = '', string $media = 'all'): void` | `addStyle(...)` |
 | `enqueue_script(string $handle, string $src, string $version = '', bool $defer = false): void` | `addScript(...)` |
@@ -58,7 +58,7 @@ enqueue_meta('og:title', 'Laika Billing', 'property');
 
 ## Context — Data for Every Template
 
-`Laika\Service\Context` is a request-wide key/value store. Anything set there — from a pipeline, a hook, a service — reaches every template as {% raw %}`{{ context }}`{% endraw %}.
+`Laika\Engine\Services\Context` is a request-wide key/value store. Anything set there — from a pipeline, a hook, a service — reaches every template as {% raw %}`{{ context }}`{% endraw %}.
 
 ```php
 // in a pipeline
@@ -86,11 +86,11 @@ Keys must match `\w+` and are lowercased; anything else throws `ContextException
 
 ## Navigation Menus
 
-`Laika\Service\Nav` builds menus from **named routes** and marks the active item from the current URL.
+`Laika\Engine\Services\Nav` builds menus from **named routes** and marks the active item from the current URL.
 
 ```php
 // e.g. in a pipeline or hook file
-use Laika\Service\Nav;
+use Laika\Engine\Services\Nav;
 
 Nav::add('Dashboard', 'dashboard')->icon('bi bi-speedometer');
 Nav::add('Orders', 'orders.index')
@@ -114,14 +114,14 @@ echo Nav::render('navbar');
 
 An `Item` has `child()`/`end()` for nesting, `name()`, `icon()` (a CSS class) or `svg()` (inline SVG), `addClass()`, `setId()`, `attr()`, `target()`, `rel()` and `active()`. `match_url(string $named): bool` tells you whether the current URL is under a named route — handy for hand-built menus.
 
-The full guide — active-state rules, conditional display, styling — is in the [Nav README](https://github.com/laikait/laika-core/blob/main/src/Nav/README.MD).
+The full guide — active-state rules, conditional display, styling — is in the [Nav README](https://github.com/laikait/laika-engine/blob/main/src/Nav/README.MD).
 
 ## Icons
 
-`Laika\Core\Generator\Icon` returns inline SVG (Bootstrap Icons path data). Nothing is loaded from a CDN, and icons inherit the text colour.
+`Laika\Engine\Generator\Icon` returns inline SVG (Bootstrap Icons path data). Nothing is loaded from a CDN, and icons inherit the text colour.
 
 ```php
-use Laika\Core\Generator\Icon;
+use Laika\Engine\Generator\Icon;
 
 Icon::svg('trash', 20);    // <svg … width="20" height="20">…</svg>
 Icon::trash(20);           // the same, through the magic method
@@ -134,7 +134,7 @@ Icon::names();             // every available name
 Twig escapes filter output, so register the filter yourself and mark it raw:
 
 ```php
-$tpl->addFilter('icon', [\Laika\Core\Generator\Icon::class, 'svg']);
+$tpl->addFilter('icon', [\Laika\Engine\Generator\Icon::class, 'svg']);
 ```
 
 {% raw %}

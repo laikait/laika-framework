@@ -1,12 +1,16 @@
 ##################################################################
 ############## PLEASE DO NOT EDIT AFTER THIS LINE ################
 ##################################################################
-Options -Indexes
-# The document root is public/. Nothing in the project root is ever
-# served directly -- point your vhost's DocumentRoot at public/.
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteRule ^(.*)$ public/index.php [QSA,L]
+    
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [QSA,L]
 </IfModule>
 ##################################################################
 ################## YOU CAN ADD AFTER THIS LINE ###################

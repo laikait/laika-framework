@@ -1,9 +1,9 @@
 # Mail
 
-[`laikait/laika-mailman`](https://github.com/laikait/laika-mailman) sends mail (a fluent wrapper over PHPMailer — SMTP, sendmail, qmail, `mail()`) and reads it (IMAP and POP3 clients, no `ext-imap` needed). laika-core requires it, so it's installed with the framework.
+The [Mailman module](https://github.com/laikait/laika-engine/tree/main/docs/mailman) of `laikait/laika-engine` sends mail (a fluent wrapper over PHPMailer — SMTP, sendmail, qmail, `mail()`) and reads it (IMAP and POP3 clients, no `ext-imap` needed). The Core module requires it, so it's installed with the framework.
 
 ```php
-use Laika\Mailman\Mailer;
+use Laika\Engine\Mailman\Mailer;
 
 (new Mailer(config('mail')))
     ->to('ann@example.com', 'Ann')
@@ -12,7 +12,7 @@ use Laika\Mailman\Mailer;
     ->send();
 ```
 
-> If `Laika\Mailman\Mailer` isn't found, your install predates core 5.1 — run `composer update`.
+> If `Laika\Engine\Mailman\Mailer` isn't found, your install predates core 5.1 — run `composer update`.
 
 ## Configuration
 
@@ -107,7 +107,7 @@ $mailer->xmailer(Mailer::XMAILER_PHPMAILER);  // PHPMailer's default, version in
 
 ### OAuth (XOAUTH2)
 
-`$mailer->oauth($provider)` takes a `PHPMailer\PHPMailer\OAuthTokenProvider` — a single method, `getOauth64()`. See the [laika-mailman README](https://github.com/laikait/laika-mailman#oauth-xoauth2).
+`$mailer->oauth($provider)` takes a `PHPMailer\PHPMailer\OAuthTokenProvider` — a single method, `getOauth64()`. See the [Mailman module docs](https://github.com/laikait/laika-engine/tree/main/docs/mailman).
 
 ## Send Mail From a Queue
 
@@ -116,8 +116,8 @@ Sending over SMTP takes seconds, so do it in a [job](../12_queue/01_basic.md) ra
 ```php
 namespace App\Job;
 
-use Laika\Mailman\Mailer;
-use Laika\Queue\Abstracts\Job;
+use Laika\Engine\Mailman\Mailer;
+use Laika\Engine\Queue\Abstracts\Job;
 
 class SendMail extends Job
 {
@@ -137,7 +137,7 @@ class SendMail extends Job
 ```
 
 ```php
-use Laika\Core\Worker\Queue;
+use Laika\Engine\Worker\Queue;
 
 Queue::driver()->push(new SendMail($user['email'], 'Welcome', $html), queue: 'mail');
 ```
@@ -149,7 +149,7 @@ To call the mailer as a relay (`Mail::to(...)->send()`), bind it in a provider �
 Use a template:
 
 ```php
-$html = (new \Laika\Core\App\Template())->view('emails/welcome');
+$html = (new \Laika\Engine\App\Template())->view('emails/welcome');
 ```
 
 Inside a queue job there is no web request, so the request-based template variables (`input`, `errors`, `visitor`, `page`) carry nothing useful — `assign()` everything the email needs.
@@ -159,7 +159,7 @@ Inside a queue job there is no web request, so the request-based template variab
 `ImapReader` and `Pop3Reader` are protocol clients written for this package — no `ext-imap`.
 
 ```php
-use Laika\Mailman\Reader\ImapReader;
+use Laika\Engine\Mailman\Reader\ImapReader;
 
 $reader = new ImapReader([
     'host' => 'imap.example.com', 'port' => 993, 'encryption' => 'ssl',
@@ -184,11 +184,11 @@ $reader->disconnect();
 
 `$message->body()` is **not sanitised** — inbound HTML is attacker-controlled. Clean it before putting it in a page.
 
-For routing inbound mail to handlers by ticket or invoice number (support inboxes), laika-mailman has a `Pipeline` that scans messages for identifiers. It's covered in the [laika-mailman README](https://github.com/laikait/laika-mailman#scanning-incoming-mail).
+For routing inbound mail to handlers by ticket or invoice number (support inboxes), the Mailman module has a `Pipeline` that scans messages for identifiers. It's covered in the [Mailman module docs](https://github.com/laikait/laika-engine/tree/main/docs/mailman).
 
 ## Errors
 
-Everything throws `Laika\Mailman\Exceptions\MailmanException` or a subclass:
+Everything throws `Laika\Engine\Mailman\Exceptions\MailmanException` or a subclass:
 
 | Exception | Means |
 |---|---|
@@ -202,4 +202,4 @@ Credentials are redacted from exception messages.
 ## See Also
 
 - [Queue](../12_queue/01_basic.md)
-- [laika-mailman README](https://github.com/laikait/laika-mailman) — the full reading and Pipeline API
+- [Mailman module docs](https://github.com/laikait/laika-engine/tree/main/docs/mailman) — the full reading and Pipeline API

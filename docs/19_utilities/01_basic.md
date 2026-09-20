@@ -1,13 +1,13 @@
 # Utilities
 
-Dates, precise arithmetic, cron jobs, shell commands, IP address maths and a few smaller helpers from laika-core.
+Dates, precise arithmetic, cron jobs, shell commands, IP address maths and a few smaller helpers from the Core module.
 
 ## Date
 
-`Laika\Service\Date` is an immutable wrapper around `DateTime` — every change returns a new instance.
+`Laika\Engine\Services\Date` is an immutable wrapper around `DateTime` — every change returns a new instance.
 
 ```php
-use Laika\Service\Date;
+use Laika\Engine\Services\Date;
 
 Date::now()->format('d M Y');                                  // "14 Sep 2026"
 Date::parse('next Monday')->format('l');                       // "Monday"
@@ -34,15 +34,15 @@ Date::now()->modify('+2 hours')->setTimezone('Asia/Dhaka')->toIso8601();
 
 ```php
 // lf-hooks/timezone.php
-\Laika\Service\Date::setAppTimezone('Asia/Dhaka');
+\Laika\Engine\Services\Date::setAppTimezone('Asia/Dhaka');
 ```
 
 ## Math
 
-`Laika\Service\Math` does arbitrary-precision arithmetic on strings — for money and anything floats get wrong. Requires `ext-bcmath`.
+`Laika\Engine\Services\Math` does arbitrary-precision arithmetic on strings — for money and anything floats get wrong. Requires `ext-bcmath`.
 
 ```php
-use Laika\Service\Math;
+use Laika\Engine\Services\Math;
 
 Math::add('0.1', '0.2');            // "0.3000"   (default scale 4)
 Math::scale(2)->mul('19.99', 3);    // "59.97"
@@ -67,10 +67,10 @@ Math::percent(45, 60);              // "75.0000"
 
 ## Cron
 
-`Laika\Core\Helper\Cron` manages a block of jobs in a user's crontab, between `# [LAIKA-CRON-START]` and `# [LAIKA-CRON-END]` markers — lines outside the block are never touched. Linux and macOS only; needs `shell_exec()` and `system()`.
+`Laika\Engine\Helper\Cron` manages a block of jobs in a user's crontab, between `# [LAIKA-CRON-START]` and `# [LAIKA-CRON-END]` markers — lines outside the block are never touched. Linux and macOS only; needs `shell_exec()` and `system()`.
 
 ```php
-use Laika\Core\Helper\Cron;
+use Laika\Engine\Helper\Cron;
 
 (new Cron())                                         // current user; new Cron('www-data') needs rights to that crontab
     ->everyMinute('php /var/www/app/laika report:tick', 'tick')
@@ -92,10 +92,10 @@ Run it from a [custom command](../01_getting-started/04_cli.md#writing-your-own-
 
 ## Shell Commands
 
-`Laika\Core\System\Command\Runner` runs external commands with a timeout:
+`Laika\Engine\System\Command\Runner` runs external commands with a timeout:
 
 ```php
-use Laika\Core\System\Command\Runner;
+use Laika\Engine\System\Command\Runner;
 
 $result = Runner::make()->timeout(30)->cwd(APP_PATH)->run(['git', 'rev-parse', 'HEAD']);
 
@@ -125,10 +125,10 @@ These use `proc_open()`/`exec()`, which hardened PHP-FPM pools often disable —
 
 ## IP Addresses
 
-`Laika\Service\IP` does CIDR maths for IPv4 and IPv6:
+`Laika\Engine\Services\IP` does CIDR maths for IPv4 and IPv6:
 
 ```php
-use Laika\Service\IP;
+use Laika\Engine\Services\IP;
 
 $net = IP::parse('192.168.10.0/24');
 $net->getBroadcastAddress();                          // 192.168.10.255
@@ -147,11 +147,11 @@ IP::summarise(['10.0.0.0/25', '10.0.0.128/25']);      // ['10.0.0.0/24']
 | `ipInCidr(string $ip, string $cidr): bool` | |
 | `summarise(array $cidrs): array` | Merge adjacent blocks |
 
-Network objects also offer `overlaps()`, `split()`, `supernet()`, host enumeration and more — see the [IP README](https://github.com/laikait/laika-core/blob/main/src/IP/README.MD). For the *client's* IP, use `Visitor::ip()` (see [Requests](../02_routing/03_requests.md#client-information)).
+Network objects also offer `overlaps()`, `split()`, `supernet()`, host enumeration and more — see the [IP README](https://github.com/laikait/laika-engine/blob/main/src/IP/README.MD). For the *client's* IP, use `Visitor::ip()` (see [Requests](../02_routing/03_requests.md#client-information)).
 
 ## PhpMetadataParser
 
-`Laika\Service\PhpMetadataParser::parse(string $file): array` reads `Key: Value` lines from a PHP file's first docblock — useful for describing modules or themes:
+`Laika\Engine\Services\PhpMetadataParser::parse(string $file): array` reads `Key: Value` lines from a PHP file's first docblock — useful for describing modules or themes:
 
 ```php
 /**

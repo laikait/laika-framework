@@ -40,5 +40,5 @@ jobs:
       # Lint PHP Syntax
       - name: Lint PHP syntax
         run: |
-          find index.php lf-app lf-boot lf-config lf-hooks lf-inc lf-lang lf-routes template -name '*.php' -print0 | xargs -0 -n1 php -l
+          find public lf-app lf-boot lf-config lf-hooks lf-inc lf-lang lf-routes template -name '*.php' -print0 | xargs -0 -n1 php -l
           php -l laika

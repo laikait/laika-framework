@@ -1,6 +1,6 @@
 # Helper Functions
 
-laika-core defines a set of global functions (in `helpers/functions/system.php`) that are available everywhere after boot — controllers, pipelines, hook files, jobs, commands. Many are also registered as [hooks](../08_hooks/01_basic.md) so templates can call them.
+The Core module defines a set of global functions (in `helpers/functions/system.php`) that are available everywhere after boot — controllers, pipelines, hook files, jobs, commands. Many are also registered as [hooks](../08_hooks/01_basic.md) so templates can call them.
 
 ## Configuration & App
 
@@ -83,7 +83,7 @@ Site-wide settings stored in the `options` table (see [Errors & Logging → Opti
 
 ## Cache
 
-Thin wrappers over [`Laika\Service\Cache`](../20_cache/01_basic.md):
+Thin wrappers over [`Laika\Engine\Services\Cache`](../20_cache/01_basic.md):
 
 | Function | Returns |
 |---|---|

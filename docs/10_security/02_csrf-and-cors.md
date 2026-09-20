@@ -23,9 +23,9 @@ php laika pipeline:make VerifyCsrf
 ```php
 namespace App\Pipeline;
 
-use Laika\Core\Exceptions\CSRFException;
-use Laika\Route\Contracts\PipelineInterface;
-use Laika\Service\{CSRF, Request, Response};
+use Laika\Engine\Exceptions\CSRFException;
+use Laika\Engine\Route\Contracts\PipelineInterface;
+use Laika\Engine\Services\{CSRF, Request, Response};
 
 class VerifyCsrf implements PipelineInterface
 {
@@ -60,7 +60,7 @@ Leave API routes that authenticate with bearer tokens out of CSRF checks — for
 - On successful validation the token id is **burned**: recorded in an `_xct` cookie that keeps the last 20 ids. Presenting the same token again fails with "CSRF Token Already Used".
 - `validate()` throws `CSRFException` for a malformed, badly signed, expired, fingerprint-mismatched or already-used token.
 
-| `Laika\Service\CSRF` method | |
+| `Laika\Engine\Services\CSRF` method | |
 |---|---|
 | `generate(): string` | A new token |
 | `validate(?string $token): bool` | `true`, or throws `CSRFException` |
@@ -93,7 +93,7 @@ Configure it in a hook file, which runs before `handle()`:
 
 ```php
 // lf-hooks/cors.php
-use Laika\Service\CORS;
+use Laika\Engine\Services\CORS;
 
 CORS::origins(['https://app.example.com', 'https://admin.example.com']);
 CORS::credentials(true);

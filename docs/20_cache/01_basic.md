@@ -1,9 +1,9 @@
 # Caching
 
-[`laikait/laika-cache`](https://github.com/laikait/laika-cache) stores values between requests — anything slow to compute, query or fetch. It has four drivers, and three optional integrations built on it: [query results](#query-results), [whole responses](#responses) and [template fragments](#template-fragments).
+The [Cache module](https://github.com/laikait/laika-engine/tree/main/docs/cache) of `laikait/laika-engine` stores values between requests — anything slow to compute, query or fetch. It has four drivers, and three optional integrations built on it: [query results](#query-results), [whole responses](#responses) and [template fragments](#template-fragments).
 
 ```php
-use Laika\Service\Cache;
+use Laika\Engine\Services\Cache;
 
 $rates = Cache::remember('exchange-rates', 600, fn () => $api->fetchRates());
 ```
@@ -40,7 +40,7 @@ A backend that fails at runtime degrades to a miss rather than throwing — a ca
 
 ## Reading and Writing
 
-| Relay method (`Laika\Service\Cache`) | Helper | Does |
+| Relay method (`Laika\Engine\Services\Cache`) | Helper | Does |
 |---|---|---|
 | `get(string $key, mixed $default = null): mixed` | `cache($key, $default)` | The value, or `$default` on a miss |
 | `set(string $key, mixed $value, ?int $ttl = null): bool` | `cache_set($key, $value, $ttl)` | Store. `null` TTL uses the config default, `0` never expires |
@@ -108,7 +108,7 @@ Model::forgetQueryCache('posts');               // or forgetQueryCache('posts', 
 `CachePipeline` stores a route's whole response — body, status, content type and headers — so the controller does not run at all on a hit.
 
 ```php
-use Laika\Core\Pipeline\CachePipeline;
+use Laika\Engine\Pipeline\CachePipeline;
 
 Url::get('/pricing', 'PageController@pricing')
     ->pipeline([Auth::class, CachePipeline::class . '|cache_ttl=300']);
@@ -156,7 +156,7 @@ A fragment that generates a CSRF token (a hand-built form field, `lf_header()`) 
 
 Under PHP-FPM a process handles one request, and everything held in memory — loaded config files, options, the `array` cache driver — starts fresh each time. The queue worker is different: on a host without `pcntl` (every Windows host) it runs every job in one long-lived process.
 
-The framework resets that state before each job, so a job sees current config and options rather than whatever the first job loaded. The reset runs `Laika\Core\System\ProcessState::reset()`, which you can call yourself from any other long-running loop.
+The framework resets that state before each job, so a job sees current config and options rather than whatever the first job loaded. The reset runs `Laika\Engine\System\ProcessState::reset()`, which you can call yourself from any other long-running loop.
 
 ## Clearing the Cache
 

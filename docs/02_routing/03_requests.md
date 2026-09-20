@@ -1,9 +1,9 @@
 # Requests
 
-`Laika\Service\Request` gives you the current request's input, files, headers and method, and validates input. It's parsed once per request.
+`Laika\Engine\Services\Request` gives you the current request's input, files, headers and method, and validates input. It's parsed once per request.
 
 ```php
-use Laika\Service\Request;
+use Laika\Engine\Services\Request;
 
 $email = Request::input('email');
 $data  = Request::only(['name', 'email']);
@@ -41,15 +41,15 @@ That makes values safe to echo, but it means they're **stored encoded** if you s
 
   ```php
   // lf-hooks/request.php
-  use Laika\Service\Request;
-  use Laika\Core\Sanitizer\NullSanitizer;
+  use Laika\Engine\Services\Request;
+  use Laika\Engine\Sanitizer\NullSanitizer;
 
-  Request::swap(new \Laika\Core\Http\Request(new NullSanitizer()));
+  Request::swap(new \Laika\Engine\Http\Request(new NullSanitizer()));
   ```
 
   Twig auto-escapes output, so templates stay safe; you're then responsible for escaping anywhere else you echo input.
 
-| Sanitizer (`Laika\Core\Sanitizer\...`) | Does |
+| Sanitizer (`Laika\Engine\Sanitizer\...`) | Does |
 |---|---|
 | `InputSanitizer` (default) | Trim, remove NUL bytes, `htmlspecialchars()` |
 | `StripTagsSanitizer` | The same, with `strip_tags()` first (keeps the tags you allow) |
@@ -98,7 +98,7 @@ $token = preg_replace('/^Bearer\s+/i', '', Request::header('Authorization') ?? '
 `Request::file(?string $key = null): ?array` returns one `$_FILES` entry (or all of them). Files are never sanitized. Store them with `Upload`:
 
 ```php
-use Laika\Service\{Request, Upload};
+use Laika\Engine\Services\{Request, Upload};
 
 $path = Upload::init(Request::file('avatar'))->single(APP_PATH . '/uploads/avatars', 'user-42', [
     'maxsize'    => 2 * 1024 * 1024,
@@ -154,10 +154,10 @@ public function store(): ?string
 
 ### Validating Any Array
 
-`Laika\Core\Http\Validator` validates data that isn't the request — a CSV row, a JSON payload you decoded yourself:
+`Laika\Engine\Http\Validator` validates data that isn't the request — a CSV row, a JSON payload you decoded yourself:
 
 ```php
-use Laika\Core\Http\Validator;
+use Laika\Engine\Http\Validator;
 
 $errors = Validator::make($row, ['name' => 'required|string|max:50']);
 // [] when valid, otherwise ['name' => ['The [name] field is required.']]
@@ -207,7 +207,7 @@ An unknown rule name throws `InvalidArgumentException`.
 In an API, throw `ValidationException` and let the error handler answer with 422 and the errors as JSON:
 
 ```php
-use Laika\Core\Exceptions\ValidationException;
+use Laika\Engine\Exceptions\ValidationException;
 
 if (!Request::validate($rules)) {
     throw new ValidationException(Request::errors());
@@ -222,10 +222,10 @@ Every HTML response automatically gets a hidden `_csrf` field in each `<form>`. 
 
 ## Client Information
 
-`Laika\Service\Visitor` describes who is making the request:
+`Laika\Engine\Services\Visitor` describes who is making the request:
 
 ```php
-use Laika\Service\Visitor;
+use Laika\Engine\Services\Visitor;
 
 Visitor::ip();          // proxy-aware, honours trusted_proxies
 Visitor::browser();     // "Chrome 124.0.0.0"
@@ -239,7 +239,7 @@ Visitor::info();        // all of the above as an array
 
 ## The Current URL
 
-`Laika\Service\Url` (not the router's `Laika\Route\Url`) inspects and builds URLs:
+`Laika\Engine\Services\Url` (not the router's `Laika\Engine\Route\Url`) inspects and builds URLs:
 
 | Method | Returns |
 |---|---|
@@ -253,11 +253,11 @@ Visitor::info();        // all of the above as an array
 | `incrementQuery(?string $key = null)` / `decrementQuery(?string $key = null): string` | Next / previous page links (`?page`) |
 | `host(): string` / `scheme(): string` / `isHttps(): bool` / `port(): int` | Connection details, proxy-aware |
 
-`Laika\Service\Page` wraps the `?page=` value: `Page::number()`, `Page::next()`, `Page::previous()`.
+`Laika\Engine\Services\Page` wraps the `?page=` value: `Page::number()`, `Page::next()`, `Page::previous()`.
 
 ## API Reference
 
-| `Laika\Service\Request` method | |
+| `Laika\Engine\Services\Request` method | |
 |---|---|
 | `input(string $key, mixed $default = null): mixed` | One value |
 | `inputs(): array` | All input |

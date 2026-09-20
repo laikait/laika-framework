@@ -1,6 +1,6 @@
 # Authentication
 
-[`laikait/laika-auth`](https://github.com/laikait/laika-auth) provides three kinds of guard, resolved by name through `Laika\Auth\AuthManager`:
+The [Auth module](https://github.com/laikait/laika-engine/tree/main/docs/auth) of `laikait/laika-engine` provides three kinds of guard, resolved by name through `Laika\Engine\Auth\AuthManager`:
 
 | Driver | Stores | Use for |
 |---|---|---|
@@ -39,7 +39,7 @@ What `provider` means depends on the driver:
 |---|---|
 | `session` | Optional. The **session scope** the user is stored in (`web` → the `WEB` scope). Without it, the `APP` scope. |
 | `cookie` | Optional, and currently unused — the cookie name comes from the guard name. |
-| `token` | Required. A `Laika\Model\Model` subclass; `validateToken()` loads the user with its `find()`. Anything else throws `AuthException`. |
+| `token` | Required. A `Laika\Engine\Model\Model` subclass; `validateToken()` loads the user with its `find()`. Anything else throws `AuthException`. |
 
 When given, `provider` must be a non-empty string for every driver, or resolving the guard throws `AuthException`.
 
@@ -48,7 +48,7 @@ When given, `provider` must be a non-empty string for every driver, or resolving
 ## Resolving a Guard
 
 ```php
-use Laika\Auth\AuthManager;
+use Laika\Engine\Auth\AuthManager;
 
 $auth  = new AuthManager();        // reads config('auth')
 $guard = $auth->guard('web');
@@ -84,10 +84,10 @@ The user is stored as `Session::scope($provider ?? 'APP')->set("laika_auth_{$gua
 namespace App\Controller;
 
 use App\Model\UsersModel;
-use Laika\Auth\AuthManager;
-use Laika\Core\App\Template;
-use Laika\Service\{Request, Redirect, Vault};
-use Laika\Session\Session;
+use Laika\Engine\Auth\AuthManager;
+use Laika\Engine\App\Template;
+use Laika\Engine\Services\{Request, Redirect, Vault};
+use Laika\Engine\Session\Session;
 
 class LoginController
 {
@@ -192,7 +192,7 @@ $guard->revokeAllForUser($user['id']);
 Not created by `php laika app:migrate`. Either set `'install' => true` on the guard once (development), or create it with a privileged connection:
 
 ```php
-(new \Laika\Auth\Schema\AuthSchema('default'))->up();
+(new \Laika\Engine\Auth\Schema\AuthSchema('default'))->up();
 ```
 
 | Column | Type |
@@ -216,9 +216,9 @@ A pipeline that requires a logged-in web user:
 ```php
 namespace App\Pipeline;
 
-use Laika\Auth\AuthManager;
-use Laika\Route\Contracts\PipelineInterface;
-use Laika\Service\Redirect;
+use Laika\Engine\Auth\AuthManager;
+use Laika\Engine\Route\Contracts\PipelineInterface;
+use Laika\Engine\Services\Redirect;
 
 class Authenticate implements PipelineInterface
 {
@@ -243,9 +243,9 @@ A pipeline that requires a valid bearer token:
 ```php
 namespace App\Pipeline;
 
-use Laika\Auth\AuthManager;
-use Laika\Route\Contracts\PipelineInterface;
-use Laika\Service\{Request, Response};
+use Laika\Engine\Auth\AuthManager;
+use Laika\Engine\Route\Contracts\PipelineInterface;
+use Laika\Engine\Services\{Request, Response};
 
 class ApiAuth implements PipelineInterface
 {
@@ -268,8 +268,8 @@ class ApiAuth implements PipelineInterface
 ```
 
 ```php
-use Laika\Route\Handler;
-use Laika\Service\Url;
+use Laika\Engine\Route\Handler;
+use Laika\Engine\Services\Url;
 
 Handler::registerGroup('api', function () {
     Url::get('/me', 'Api\MeController@show');
@@ -278,7 +278,7 @@ Handler::registerGroup('api', function () {
 
 Behind Apache with PHP-FPM, `Request::header('Authorization')` still works — see [Deployment](../13_deployment/01_basic.md#php-fpm).
 
-## What laika-auth Doesn't Do
+## What the Auth module Doesn't Do
 
 - **OAuth** — no OAuth guard, no Google/Facebook providers. Use a dedicated OAuth client library and log the resulting user in with the session guard.
 - **Passwords** — hash and verify them with `Vault::hashPassword()` / `Vault::verifyPassword()`, see [Encryption & Tokens](../10_security/03_encryption-and-tokens.md).
@@ -290,10 +290,10 @@ Behind Apache with PHP-FPM, `Request::header('Authorization')` still works — s
 | Exception | Thrown when |
 |---|---|
 | `InvalidArgumentException` | `guard()` with a name not in `lf-config/auth.php`, or a guard whose `driver` is missing or unknown |
-| `Laika\Auth\Exceptions\AuthException` | A misconfigured guard: an empty guard name, a `provider` that isn't a non-empty string, or a token guard whose provider isn't a `Laika\Model\Model` subclass |
+| `Laika\Engine\Auth\Exceptions\AuthException` | A misconfigured guard: an empty guard name, a `provider` that isn't a non-empty string, or a token guard whose provider isn't a `Laika\Engine\Model\Model` subclass |
 | Database exceptions | Any token guard method, when the database fails |
 
-Validation failures don't throw — `user()`, `token()`, `validateToken()` and `refreshToken()` return `null`. To turn one into a 401 from a pipeline, throw `Laika\Core\Exceptions\AuthenticationException`; the framework's error handler renders it — see [Errors & Logging](../18_errors-and-logging/01_basic.md).
+Validation failures don't throw — `user()`, `token()`, `validateToken()` and `refreshToken()` return `null`. To turn one into a 401 from a pipeline, throw `Laika\Engine\Exceptions\AuthenticationException`; the framework's error handler renders it — see [Errors & Logging](../18_errors-and-logging/01_basic.md).
 
 ## See Also
 

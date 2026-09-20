@@ -1,6 +1,6 @@
 # Query Builder
 
-Every `Laika\Model\Model` subclass is a fluent query builder. Chain clauses, then finish with a terminal method (`get()`, `first()`, `count()`, `insert()`, `update()`, `delete()`, ...). The builder resets after each terminal call.
+Every `Laika\Engine\Model\Model` subclass is a fluent query builder. Chain clauses, then finish with a terminal method (`get()`, `first()`, `count()`, `insert()`, `update()`, `delete()`, ...). The builder resets after each terminal call.
 
 ```php
 use App\Model\UsersModel;
@@ -22,10 +22,10 @@ $rows = (new UsersModel())
 | `distinct(): Static` | `SELECT DISTINCT` |
 | `table(string $table): Static` | Query a different table with this model's connection |
 
-For SQL expressions, wrap them in `Laika\Model\Schema\Expression` — plain strings are treated as identifiers and validated:
+For SQL expressions, wrap them in `Laika\Engine\Model\Schema\Expression` — plain strings are treated as identifiers and validated:
 
 ```php
-use Laika\Model\Schema\Expression;
+use Laika\Engine\Model\Schema\Expression;
 
 $orders->select([new Expression('SUM(total) AS revenue'), 'customer_id'])
        ->groupBy('customer_id')
@@ -185,7 +185,7 @@ $orderId = $orders->transaction(function ($m) use ($cart) {
 | `execute(string $sql, ?array $bindings = null): \PDOStatement` | Run raw SQL with bound values |
 | `debug(): string` | The SQL the current chain would run, values inlined — for inspection only; doesn't reset the chain |
 | `pdo(): \PDO` / `driver(): string` | The connection and its canonical driver name |
-| `uid(): string` | 32 random hex characters in four groups of 8 (not an RFC UUID — use `Laika\Core\Generator\Uid::make()` for that) |
+| `uid(): string` | 32 random hex characters in four groups of 8 (not an RFC UUID — use `Laika\Engine\Generator\Uid::make()` for that) |
 
 ```php
 echo $users->where(['id' => 5])->debug();  // SELECT * FROM `users` WHERE `id` = 5;
@@ -210,7 +210,7 @@ Casts apply on read only — encode JSON yourself when writing.
 
 ## Connection API
 
-`Laika\Model\Connection` is the static connection registry:
+`Laika\Engine\Model\Connection` is the static connection registry:
 
 | Method | |
 |---|---|
@@ -225,7 +225,7 @@ Casts apply on read only — encode JSON yourself when writing.
 
 ## Schema Builder
 
-`Laika\Model\Schema\Schema::on(?string $connection = null)` returns a builder for a connection:
+`Laika\Engine\Model\Schema\Schema::on(?string $connection = null)` returns a builder for a connection:
 
 | Method | |
 |---|---|
@@ -274,14 +274,14 @@ $t->index(['last_name', 'first_name'], 'name_idx');
 $t->foreign('user_id')->reference('id')->on('users')->onDelete('CASCADE')->onUpdate('CASCADE');
 ```
 
-> The method is **`reference()`**, singular. The laika-model README's `->references('id')` doesn't exist and is a fatal error.
+> The method is **`reference()`**, singular. The old laika-model README's `->references('id')` doesn't exist and is a fatal error.
 
 ## Query Log
 
-Every query run by a model or schema is recorded in `Laika\Model\Log`:
+Every query run by a model or schema is recorded in `Laika\Engine\Model\Log`:
 
 ```php
-use Laika\Model\Log;
+use Laika\Engine\Model\Log;
 
 Log::get();    // ['default' => ['SELECT ...', 'INSERT ...'], ...]
 Log::count();

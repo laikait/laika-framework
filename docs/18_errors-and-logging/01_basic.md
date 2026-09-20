@@ -1,10 +1,10 @@
 # Errors & Logging
 
-How Laika handles exceptions, how to return HTTP errors, where logs go, and the two tables laika-core keeps for you: the activity log and site options.
+How Laika handles exceptions, how to return HTTP errors, where logs go, and the two tables the Core module keeps for you: the activity log and site options.
 
 ## The Error Handler
 
-`Laika\Core\Exceptions\Handler` is registered at boot, for web requests and the CLI alike:
+`Laika\Engine\Exceptions\Handler` is registered at boot, for web requests and the CLI alike:
 
 | It catches | Effect |
 |---|---|
@@ -30,7 +30,7 @@ JSON replies are sent with `Content-Type: application/json; charset=UTF-8`. (In 
 ## Throwing HTTP Errors
 
 ```php
-use Laika\Core\Exceptions\{HttpException, NotFoundHttpException, AuthenticationException, ValidationException};
+use Laika\Engine\Exceptions\{HttpException, NotFoundHttpException, AuthenticationException, ValidationException};
 
 throw new NotFoundHttpException();                                   // 404 "Page Not Found"
 throw new AuthenticationException();                                 // 401 "Unauthenticated."
@@ -45,7 +45,7 @@ throw new ValidationException(['email' => ['Already registered.']]); // 422, wit
 | `AuthenticationException` | 401 | `__construct(string $message = 'Unauthenticated.')` |
 | `ValidationException` | 422 | `__construct(array $errors, string $message = 'Validation Failed')`, plus `errors(): array` |
 
-Other exceptions the framework throws — `CSRFException`, `AppKeyException`, `PathException`, `ExtensionException`, `ContextException`, `LocalException`, `LogException`, `OptionException`, `ResourceException`, `SchemaException`, and laika-model's `ModelException` — all render as a 500 unless you catch them. For example, catch `CSRFException` and answer 419.
+Other exceptions the framework throws — `CSRFException`, `AppKeyException`, `PathException`, `ExtensionException`, `ContextException`, `LocalException`, `LogException`, `OptionException`, `ResourceException`, `SchemaException`, and the Model module's `ModelException` — all render as a 500 unless you catch them. For example, catch `CSRFException` and answer 419.
 
 ## Logging
 
@@ -57,7 +57,7 @@ When `DEBUG` is on, the handler appends each exception (class, message, location
 - or write your own log lines with `File::append()`:
 
 ```php
-\Laika\Service\File::append(
+\Laika\Engine\Services\File::append(
     sprintf("[%s] %s\n", date('c'), $message),
     APP_PATH . '/lf-storage/logs/app.log'
 );
@@ -67,10 +67,10 @@ When `DEBUG` is on, the handler appends each exception (class, message, location
 
 ## Activity Log
 
-`Laika\Service\Activity` records an audit trail — who did what — in the `activities` table.
+`Laika\Engine\Services\Activity` records an audit trail — who did what — in the `activities` table.
 
 ```php
-use Laika\Service\Activity;
+use Laika\Engine\Services\Activity;
 
 $changes = Activity::changelog($invoiceBefore);   // compares against the request input
 
@@ -88,7 +88,7 @@ class WriteActivityLog implements FilterInterface
 {
     public function terminate(callable $next, ?string $response, array &$params): ?string
     {
-        \Laika\Service\Activity::insert();
+        \Laika\Engine\Services\Activity::insert();
         return $next($response);
     }
 }
@@ -107,10 +107,10 @@ Each row stores `author_type`, `author_id`, `event` (lowercased), `log`, `change
 
 ## Options
 
-`Laika\Service\Option` stores site-wide settings in the `options` table — handy for values an admin can change at runtime.
+`Laika\Engine\Services\Option` stores site-wide settings in the `options` table — handy for values an admin can change at runtime.
 
 ```php
-use Laika\Service\Option;
+use Laika\Engine\Services\Option;
 
 Option::single('app_name');              // "Laika Framework" (a seeded default)
 Option::insert('maintenance', false);    // stored as "false"
@@ -130,7 +130,7 @@ option_int('data_limit', 20);            // 50
 - The table is created and seeded on first use. Seeded keys: `app_name`, `app_icon`, `app_logo`, `app_path`, `data_limit`, `date_format`, `time_format`, `datetime_format`, `time_zone`.
 - Values are stored as text (`convert_to_string()`): read them with `option_bool()`, `option_int()` and `option_array()` — see [Helpers → Options](../15_helpers/01_basic.md#options).
 - Lookups are cached for the rest of the request.
-- For another connection: `new \Laika\Core\Model\OptionModel('tenant_db')`.
+- For another connection: `new \Laika\Engine\Model\OptionModel('tenant_db')`.
 - With `DEBUG` on, failures throw `OptionException`; in production reads return the default and writes return `false`.
 
 ## See Also

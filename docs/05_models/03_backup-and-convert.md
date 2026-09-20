@@ -1,13 +1,13 @@
 # Backup & Convert
 
-laika-model ships two database tools: **`Backup`** backs up and restores a connection, and **`Converter`** translates SQL between database engines and can copy a live database from one engine to another.
+The Model module ships two database tools: **`Backup`** backs up and restores a connection, and **`Converter`** translates SQL between database engines and can copy a live database from one engine to another.
 
 Both run from PHP, so the natural place for them is a [custom CLI command](../01_getting-started/04_cli.md#writing-your-own-commands) or a [queue job](../12_queue/01_basic.md) — not a web request.
 
 ## Backup
 
 ```php
-use Laika\Model\Backup;
+use Laika\Engine\Model\Backup;
 
 $backup = new Backup('default');                 // a connection name; default = the default connection
 
@@ -23,7 +23,7 @@ $backup->restore(APP_PATH . '/lf-storage/backups/db.sql');
 | `dump(string $path): string` | Plain `CREATE TABLE`/`INSERT` SQL. MySQL/MariaDB, PostgreSQL, SQLite and SQL Server only. Returns the path. |
 | `restore(string $path): void` | Restores a file produced by `create()` |
 
-Failures throw `Laika\Model\Exceptions\BackupException`.
+Failures throw `Laika\Engine\Model\Exceptions\BackupException`.
 
 **Requirements.** MySQL and PostgreSQL backups shell out to `mysqldump`/`mysql` and `pg_dump`/`psql`; SQL Server uses `sqlcmd`; Firebird uses `gbak`. The tools must be installed and on the `PATH`, and PHP's `exec()` must be enabled — hardened PHP-FPM pools often disable it, which is another reason to run backups from the CLI.
 
@@ -34,7 +34,7 @@ Failures throw `Laika\Model\Exceptions\BackupException`.
 Translate SQL written for one engine into another — a single statement, a `.sql` file, or a multi-gigabyte dump.
 
 ```php
-use Laika\Model\Converter;
+use Laika\Engine\Model\Converter;
 
 $converter = new Converter(from: 'mysql', to: 'pgsql');
 
@@ -63,7 +63,7 @@ A source may be a SQL string, a file path, an open resource or an `SplFileObject
 ### Moving a Live Database to Another Engine
 
 ```php
-use Laika\Model\{Connection, Converter};
+use Laika\Engine\Model\{Connection, Converter};
 
 Connection::add(config('database', 'legacy'), 'legacy');   // e.g. MySQL
 Connection::add(config('database', 'default'), 'default'); // e.g. PostgreSQL
@@ -101,7 +101,7 @@ Doesn't convert: views, triggers, stored procedures, dialect-specific expression
 
 Take MySQL dumps with `mysqldump --hex-blob`, or binary columns arrive as text. A PostgreSQL → SQLite migration loses primary and foreign keys (SQLite can't add constraints afterwards); the losses are listed in the report.
 
-The [laika-model README](https://github.com/laikait/laika-model#sql-converter) has the full conversion rules.
+The [Model module docs](https://github.com/laikait/laika-engine/tree/main/docs/model) has the full conversion rules.
 
 ## See Also
 

@@ -1,5 +1,80 @@
 # Upgrading
 
+## Upgrading to laika-engine 2.0
+
+Core's classes moved up one level, so `Laika\Engine\Core\X` is now `Laika\Engine\X` — for example `Laika\Engine\Core\Http\Request` becomes `Laika\Engine\Http\Request`, and `Laika\Engine\Core\App\Template` becomes `Laika\Engine\App\Template`. `Laika\Engine\Core\Model\OptionModel` becomes `Laika\Engine\Model\OptionModel`. Nothing else was renamed, and no class or method changed its behaviour.
+
+**1. Require 2.0** in `composer.json`:
+
+```json
+"require": {
+    "php": ">=8.1",
+    "laikait/laika-engine": "2.0.*"
+}
+```
+
+**2. Drop the `Core\` segment** from your imports:
+
+```bash
+grep -rlP 'Laika\\+Engine\\+Core\\+' lf-* public template | xargs perl -pi -e \
+    's/Laika(\\+)Engine(\\+)Core(\\+)/Laika$1Engine$2/g'
+```
+
+**3. Update:**
+
+```bash
+composer update
+php laika app:cache        # rebuild the resource manifest (app:sync, run by Composer, does too)
+```
+
+2.0 also carries the extension points added in this release — `extend()` for cache, session, queue, database and mail drivers, macros, and `Model` split into traits. See [Extending the Framework](../21_extending/01_basic.md). Nothing there is a breaking change.
+
+## Upgrading to laika-engine 1.0
+
+The eleven `laikait/laika-*` packages are merged into one, `laikait/laika-engine`, and every class moves under the `Laika\Engine\` namespace. The front controller moves to `public/`.
+
+**1. Swap the requirement** in the project's `composer.json`, and point the scripts at the new namespace. Remove any `Laika\\Cache\\` entry from `autoload.psr-4`; the engine autoloads everything itself.
+
+```json
+"require": {
+    "php": ">=8.1",
+    "laikait/laika-engine": "1.0.*"
+},
+"scripts": {
+    "post-autoload-dump": [
+        "@php laika app:sync"
+    ]
+}
+```
+
+**2. Rename the namespaces** in your own code. Every framework class gains an `Engine\` segment, for example `Laika\Route\Url` → `Laika\Engine\Route\Url` and `Laika\Service\Config` → `Laika\Engine\Services\Config`. No other class names change:
+
+```bash
+grep -rlP 'Laika\\+(Auth|Cache|Cli|Core|Mailman|Model|Queue|Relay|Route|Session|Shield|Service)\b' \
+    lf-* public template | xargs perl -pi -e \
+    's/Laika(\\+)Core(\\+)/Laika$1Engine$2/g; s/Laika(\\+)Service\b/Laika$1Engine$1Services/g; s/Laika(\\+)(Auth|Cache|Cli|Mailman|Model|Queue|Relay|Route|Session|Shield)\b/Laika$1Engine$1$2/g'
+```
+
+**3. Move the front controller.** Move `index.php` to `public/index.php` and `.htaccess` to `public/.htaccess`. In `public/index.php`, define `APP_PATH` and load the boot file from one level up:
+
+```php
+defined('APP_PATH') || define('APP_PATH', dirname(__DIR__));
+require_once APP_PATH . '/lf-boot/app.php';
+```
+
+**4. Repoint the web server** at `public/` (Apache `DocumentRoot`, nginx `root`). See [Deployment](../13_deployment/01_basic.md). `php laika nginx:server` generates a complete server block with the new root already set. Asset URLs don't change: `assets/`, `template/assets/` and `uploads/` stay in the project root and PHP keeps serving them.
+
+**5. Update:**
+
+```bash
+composer update
+php laika app:cache        # rebuild the resource manifest (app:sync, run by Composer, does too)
+```
+
+A GeoLite2 path under `vendor/laikait/laika-shield/src/Storage/` becomes `vendor/laikait/laika-engine/src/Shield/Storage/`.
+
+## Earlier releases
+
 What changed across the `laikait/*` packages in the laika-core 5.1 release line, and what to do about it. Upgrade notes for individual features also live on their own pages — they're linked below.
 
 ## Upgrading to laika-core 5.1
@@ -38,7 +113,7 @@ Core 5.1 pulls in these package versions:
 3. **Redirects.** `Redirect::back()` and `Redirect::to()` now return `void` (they always exited), so remove any chaining after them. `back()` only follows referers on the same host; anything else goes to `/`. 303 is now an allowed status.
 4. **Templates.** `new Template('admin')` ignores its argument — move the directory onto the view name: `view('admin/dashboard')`. `extension()` is deprecated and throws under the error handler; use `html()`/`twig()`. See [Templates](../06_templates/01_basic.md#sub-directories).
 5. **`@`-suppressed warnings.** The error handler now honours `@` and `error_reporting()`, so deliberately suppressed calls (`@mkdir`, `@fopen`) no longer throw.
-6. **Composer plugins.** laika-cli and laika-queue are ordinary libraries since laika-cli 3.0 — drop them from `config.allow-plugins`, and make sure `post-autoload-dump` runs `Laika\Cli\ScriptHandler::generate`, `Laika\Queue\ScriptHandler::generate` and `@php laika app:sync` (see [Installation](01_installation.md#the-laika-and-worker-executables)).
+6. **Composer plugins.** laika-cli and laika-queue are ordinary libraries since laika-cli 3.0 — drop them from `config.allow-plugins`, and make sure `post-autoload-dump` runs `@php laika app:sync` (see [Installation](01_installation.md#the-laika-and-worker-executables)). That one entry writes both `laika` and `worker` and does the rest of the sync. Any `Laika\Engine\Cli\ScriptHandler::generate` or `Laika\Engine\Queue\ScriptHandler::generate` lines from an older project still work — they call the same generator — but they are redundant and can be removed.
 7. **Resource commands.** The manifest is built with `php laika app:cache` and removed with `php laika app:clear`. (Older docs mentioned `resource:cache`/`resource:clear`, which don't exist.)
 
 ## Fixes After laika-core 5.1.1
@@ -52,7 +127,7 @@ Bug fixes in the package releases that follow core 5.1.1, model 4.0.6, route 2.0
 | laika-core | JSON error responses no longer end in a fatal error, and carry a JSON `Content-Type`. | None |
 | laika-core | `Upload::multiple()` no longer stores a file that failed validation. | None |
 | laika-route | A visible (non-hidden) `_csrf` input answers with the intended 415 JSON instead of a fatal error. | None |
-| laika-shield | The `Laika\Shield\Service\ShieldConfig` relay resolves to the shared configuration. | None |
+| laika-shield | The `Laika\Engine\Shield\Service\ShieldConfig` relay resolves to the shared configuration. | None |
 | laika-cli | The `model:make` schema stub's `deleted_at` defaults to `NULL`, and its `seed()` only seeds an empty table. | Fix schemas generated earlier: add `->default(null)` to `deleted_at` (and clear it in existing rows), and guard `seed()`. |
 | laika-core | `MEMORY_LIMIT` and `CLI_MEMORY_LIMIT` are applied at boot, to every request and command. Before, only the queue worker applied `CLI_MEMORY_LIMIT`. | Make sure `MEMORY_LIMIT` fits your heaviest page — it now caps web requests below `php.ini`. A hook-file `MemoryManager::apply()` can go. |
 | laika-core | `Runner` async runs work on Windows (they threw a `TypeError`), honour `cwd()` and `env()` everywhere, and `AsyncJob::stop()` no longer needs `ext-pcntl`. | None |

@@ -17,7 +17,7 @@ namespace App\Controller;
 // Deny Direct Access
 defined('APP_PATH') || http_response_code(403) . die('403 Direct Access Denied!');
 
-use Laika\Core\App\Template;
+use Laika\Engine\App\Template;
 
 class HomeController
 {

@@ -13,6 +13,6 @@ declare(strict_types=1);
 // Deny Direct Access
 defined('APP_PATH') || http_response_code(403).die('403 Direct Access Denied!');
 
-use Laika\Route\Url;
+use Laika\Engine\Route\Url;
 
 Url::get('/', 'HomeController@index')->name('home');

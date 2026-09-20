@@ -1,6 +1,6 @@
 # Models & Database
 
-Laika's data layer is [`laikait/laika-model`](https://github.com/laikait/laika-model) — a PDO query builder and schema builder for MySQL, MariaDB, PostgreSQL, SQLite, SQL Server, Oracle and Firebird. This page covers setting up models, schemas and migrations; the [Query Builder](02_query-builder.md) page is the full method reference.
+Laika's data layer is The [Model module](https://github.com/laikait/laika-engine/tree/main/docs/model) of `laikait/laika-engine` — a PDO query builder and schema builder for MySQL, MariaDB, PostgreSQL, SQLite, SQL Server, Oracle and Firebird. This page covers setting up models, schemas and migrations; the [Query Builder](02_query-builder.md) page is the full method reference.
 
 ```php
 use App\Model\UsersModel;
@@ -68,7 +68,7 @@ $rows = (new ReportModel('analytics'))->where(['year' => 2025])->get();
 
 Each connection is registered under its own name the first time something uses it — a model, `Schema::on('analytics')`, the session `Init::model('analytics')` driver, a token guard with `'connection' => 'analytics'`, or `queue.connection`. A name missing from `database.php` throws.
 
-> **Older packages** (laika-core 5.1.1, laika-model 4.0.6 and earlier) registered a second connection under the name `default` — overwriting the default connection — and then failed. On those versions, register extra connections yourself in a hook file: `Laika\Model\Connection::add(config('database', 'analytics'), 'analytics');`
+> **Older packages** (laika-core 5.1.1, laika-model 4.0.6 and earlier) registered a second connection under the name `default` — overwriting the default connection — and then failed. On those versions, register extra connections yourself in a hook file: `Laika\Engine\Model\Connection::add(config('database', 'analytics'), 'analytics');`
 
 ## Defining a Model
 
@@ -81,7 +81,7 @@ This creates `lf-app/Model/UsersModel.php` **and** `lf-app/Schema/UsersModelSche
 ```php
 namespace App\Model;
 
-use Laika\Model\Model;
+use Laika\Engine\Model\Model;
 
 class UsersModel extends Model
 {
@@ -139,7 +139,7 @@ $users->where(['id' => $id])->update(['first_name' => 'Anne']);
 $users->where(['id' => $id])->delete();
 ```
 
-**Safety rails** — these throw `Laika\Model\Exceptions\ModelException` without a `where()`:
+**Safety rails** — these throw `Laika\Engine\Model\Exceptions\ModelException` without a `where()`:
 
 - `update()`, `delete()`, `increment()`, `decrement()`, `restore()` — to prevent accidental full-table changes
 - `first()` and `firstOrFail()` — so `$users->order('id', 'DESC')->first()` fails; use `->limit(1)->get()[0] ?? null` for "the latest row"
@@ -168,14 +168,14 @@ $posts->soft(false)->where(['id' => 3])->delete(); // really delete this once
 
 ## Schemas
 
-A schema owns one table's DDL. Schemas live in `lf-app/Schema/` and extend `Laika\Model\Contract\SchemaAbstract`:
+A schema owns one table's DDL. Schemas live in `lf-app/Schema/` and extend `Laika\Engine\Model\Contract\SchemaAbstract`:
 
 ```php
 namespace App\Schema;
 
-use Laika\Model\Schema\Schema;
-use Laika\Model\Schema\Blueprint;
-use Laika\Model\Contract\SchemaAbstract;
+use Laika\Engine\Model\Schema\Schema;
+use Laika\Engine\Model\Schema\Blueprint;
+use Laika\Engine\Model\Contract\SchemaAbstract;
 
 class UsersModelSchema extends SchemaAbstract
 {
@@ -229,7 +229,7 @@ Some framework tables are **not** created by `app:migrate` — they install them
 
 | Table | Created by |
 |---|---|
-| `options`, `activities` | laika-core, the first time `Option`/`Activity` is used |
+| `options`, `activities` | The Core module, the first time `Option`/`Activity` is used |
 | `sessions` | `Init::model('default', install: true)` |
 | `auth_tokens` | a token guard with `'install' => true` |
 | `laika_queue_jobs`, `laika_failed_jobs` | nothing — create them yourself, see [Queue → Choosing a Driver](../12_queue/01_basic.md#choosing-a-driver) |
@@ -258,4 +258,4 @@ See [Deployment](../13_deployment/01_basic.md#database-tables) for creating them
 
 - [Query Builder](02_query-builder.md) — every model, connection and schema method
 - [Backup & Convert](03_backup-and-convert.md) — database backups and moving between engines
-- [laika-model README](https://github.com/laikait/laika-model) — per-driver type mapping and grammar details
+- [Model module docs](https://github.com/laikait/laika-engine/tree/main/docs/model) — per-driver type mapping and grammar details

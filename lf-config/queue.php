@@ -47,6 +47,6 @@ return [
 
     // Note: which Job subclasses bin/worker is allowed to unserialize()
     // from the queue isn't configured here — every class under lf-app/Job
-    // is trusted automatically (see Laika\Queue\Abstracts\Job::registerTrustedClasses()
+    // is trusted automatically (see Laika\Engine\Queue\Abstracts\Job::registerTrustedClasses()
     // and bin/worker).
 ];

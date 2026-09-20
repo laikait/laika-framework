@@ -1,10 +1,10 @@
 # Queue
 
-[`laikait/laika-queue`](https://github.com/laikait/laika-queue) runs slow work — sending mail, generating reports, calling third-party APIs — in a background `worker` process instead of the web request. It supports JSON, database and Redis drivers, delayed jobs, retries with backoff, and failed-job tracking.
+The [Queue module](https://github.com/laikait/laika-engine/tree/main/docs/queue) of `laikait/laika-engine` runs slow work — sending mail, generating reports, calling third-party APIs — in a background `worker` process instead of the web request. It supports JSON, database and Redis drivers, delayed jobs, retries with backoff, and failed-job tracking.
 
 ```php
 use App\Job\SendWelcomeEmail;
-use Laika\Core\Worker\Queue;
+use Laika\Engine\Worker\Queue;
 
 Queue::driver()->push(new SendWelcomeEmail($userId), queue: 'emails', delay: 10);
 ```
@@ -34,7 +34,7 @@ return [
 | Driver | Storage | Good for | Notes |
 |---|---|---|---|
 | `json` | `lf-storage/queues/jobs.json` | Development, one server | No setup. Claiming a job is locked, so workers never share one. No recovery of a job whose worker crashed. |
-| `database` | `laika_queue_jobs` table, via laika-model | Small production setups | **One worker per queue.** Create the tables first (below). |
+| `database` | `laika_queue_jobs` table, via the Model module | Small production setups | **One worker per queue.** Create the tables first (below). |
 | `redis` | Redis, from [`lf-config/redis.php`](../01_getting-started/03_configuration.md#lf-configredisphp) | Production, several workers | Requires `ext-redis`. Atomic pop, stalled-job recovery. |
 
 Failed jobs go to a separate store, chosen by `failed_driver` — `database` (`laika_failed_jobs`) or `json` (`lf-storage/queues/failed.json`). There is no Redis failed-job store.
@@ -46,8 +46,8 @@ Failed jobs go to a separate store, chosen by `failed_driver` — `database` (`l
 The `database` driver and the `database` failed-job store need their tables, and **nothing creates them for you** — not `php laika app:migrate` (since laika-queue 1.1.1), and not first use. Create them once, with a user that has `CREATE` rights; a [custom command](../01_getting-started/04_cli.md#writing-your-own-commands) is a good place:
 
 ```php
-(new \Laika\Queue\Schema\QueueModelSchema())->up();      // laika_queue_jobs
-(new \Laika\Queue\Schema\FailedJobModelSchema())->up();  // laika_failed_jobs
+(new \Laika\Engine\Queue\Schema\QueueModelSchema())->up();      // laika_queue_jobs
+(new \Laika\Engine\Queue\Schema\FailedJobModelSchema())->up();  // laika_failed_jobs
 ```
 
 With no argument both follow `queue.connection`. They use `createIfNotExists`, so running them again is harmless.
@@ -65,7 +65,7 @@ Job names — and the `--queue` value — may contain letters and underscores on
 ```php
 namespace App\Job;
 
-use Laika\Queue\Abstracts\Job;
+use Laika\Engine\Queue\Abstracts\Job;
 
 class SendWelcomeEmail extends Job
 {
@@ -109,10 +109,10 @@ The job object is serialized into the queue, so constructor properties are avail
 
 ## Pushing a Job
 
-`Laika\Core\Worker\Queue::driver()` builds the driver configured in `lf-config/queue.php`:
+`Laika\Engine\Worker\Queue::driver()` builds the driver configured in `lf-config/queue.php`:
 
 ```php
-use Laika\Core\Worker\Queue;
+use Laika\Engine\Worker\Queue;
 
 $queue = Queue::driver();
 
@@ -176,7 +176,7 @@ Job payloads are restored with `unserialize()`. To prevent PHP object injection,
 The `worker` (and `queue:retry`) trusts every class in the `jobs` resource automatically — by default every `Job` subclass in `lf-app/Job/`, plus any job directory an installed package declares. A job class that lives elsewhere must be registered before the worker processes it — for example in a hook file:
 
 ```php
-\Laika\Queue\Abstracts\Job::registerTrustedClasses([\Acme\Billing\ChargeJob::class]);
+\Laika\Engine\Queue\Abstracts\Job::registerTrustedClasses([\Acme\Billing\ChargeJob::class]);
 ```
 
 A job the worker can't restore — untrusted, renamed or deleted — **blocks its queue** on the `json` and `database` drivers. See [A Job That Can't Be Restored](02_drivers-and-operations.md#a-job-that-cant-be-restored).
@@ -208,4 +208,4 @@ Write jobs to be **idempotent** (safe to run twice) wherever you can.
 - [Queue Drivers & Operations](02_drivers-and-operations.md) — driver internals, stuck jobs, worker hooks, custom drivers
 - [Deployment → Queue Worker](../13_deployment/01_basic.md#queue-worker)
 - [Mail](../17_mail/01_basic.md) — a common thing to queue
-- [laika-queue README](https://github.com/laikait/laika-queue)
+- [Queue module docs](https://github.com/laikait/laika-engine/tree/main/docs/queue)

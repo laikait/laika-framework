@@ -1,13 +1,13 @@
 # Files & Storage
 
-laika-core's file helpers: uploads, image processing, reading and writing files, directories, archives, and storage drivers for local disk, S3, JSON documents, Redis and Memcached.
+The Core module's file helpers: uploads, image processing, reading and writing files, directories, archives, and storage drivers for local disk, S3, JSON documents, Redis and Memcached.
 
 ## Upload
 
-`Laika\Service\Upload` validates and stores uploaded files. It's bound **per use** — each call to the relay gets a fresh instance.
+`Laika\Engine\Services\Upload` validates and stores uploaded files. It's bound **per use** — each call to the relay gets a fresh instance.
 
 ```php
-use Laika\Service\{Request, Upload};
+use Laika\Engine\Services\{Request, Upload};
 
 $path = Upload::init(Request::file('avatar'))->single(APP_PATH . '/uploads/avatars', 'user-42', [
     'maxsize'      => 2 * 1024 * 1024,
@@ -48,10 +48,10 @@ Files under `uploads/` are served directly, except markup types (`html`, `svg`, 
 
 ## Image
 
-`Laika\Service\Image` (per use, requires GD):
+`Laika\Engine\Services\Image` (per use, requires GD):
 
 ```php
-use Laika\Service\Image;
+use Laika\Engine\Services\Image;
 
 Image::path($upload)->thumbnail(300, 300, 'cover')->convertTo('webp')->save($thumbPath, 80);
 ```
@@ -74,7 +74,7 @@ Image::path($upload)->thumbnail(300, 300, 'cover')->convertTo('webp')->save($thu
 
 ## File
 
-`Laika\Service\File`:
+`Laika\Engine\Services\File`:
 
 | Method | |
 |---|---|
@@ -95,7 +95,7 @@ File::append(date('c') . " import finished\n", APP_PATH . '/lf-storage/logs/impo
 
 ## Directory
 
-`Laika\Service\Directory`:
+`Laika\Engine\Services\Directory`:
 
 | Method | |
 |---|---|
@@ -111,10 +111,10 @@ Symlinks are removed as links — `pop()` and `empty()` never delete what a link
 
 ## Zip
 
-`Laika\Core\Helper\Zip` (requires `ext-zip`):
+`Laika\Engine\Helper\Zip` (requires `ext-zip`):
 
 ```php
-use Laika\Core\Helper\Zip;
+use Laika\Engine\Helper\Zip;
 
 (new Zip(APP_PATH . '/lf-storage/backup.zip'))->create(APP_PATH . '/uploads');
 (new Zip($archive))->extract(APP_PATH . '/lf-storage/import');
@@ -128,7 +128,7 @@ use Laika\Core\Helper\Zip;
 
 ## MimeType
 
-`Laika\Service\MimeType`: `fromExtension(string $extension): string`, `fromFile(string $filename): string` (by extension), `fromContent(string $content): string` (by bytes), `all(): array`, `register(string $extension, string $mimeType): void`.
+`Laika\Engine\Services\MimeType`: `fromExtension(string $extension): string`, `fromFile(string $filename): string` (by extension), `fromContent(string $content): string` (by bytes), `all(): array`, `register(string $extension, string $mimeType): void`.
 
 Registering a type only teaches the framework its `Content-Type`; whether it may be served is decided by `lf-config/assets.php`.
 
@@ -139,7 +139,7 @@ The storage classes aren't relays — construct them where you need them.
 ### LocalStorage
 
 ```php
-use Laika\Core\Storage\LocalStorage;
+use Laika\Engine\Storage\LocalStorage;
 
 $disk = new LocalStorage(APP_PATH . '/uploads', app_host() . 'uploads');
 
@@ -164,10 +164,10 @@ Stored names get a `-uniqid-timestamp` suffix, so uploads never overwrite each o
 
 ### S3Storage
 
-`Laika\Core\Storage\S3Storage(array $overrides = [], ?string $publicBaseUrl = null)` has the same methods as `LocalStorage`, and reads [`lf-config/s3.php`](../01_getting-started/03_configuration.md#lf-configs3php). Works with AWS and S3-compatible services (MinIO, Cloudflare R2, DigitalOcean Spaces) via `endpoint`.
+`Laika\Engine\Storage\S3Storage(array $overrides = [], ?string $publicBaseUrl = null)` has the same methods as `LocalStorage`, and reads [`lf-config/s3.php`](../01_getting-started/03_configuration.md#lf-configs3php). Works with AWS and S3-compatible services (MinIO, Cloudflare R2, DigitalOcean Spaces) via `endpoint`.
 
 ```php
-use Laika\Core\Storage\S3Storage;
+use Laika\Engine\Storage\S3Storage;
 
 $s3  = new S3Storage(['acl' => 'private']);
 $url = $s3->upload(Request::file('invoice'), 'invoices');
@@ -177,10 +177,10 @@ $url = $s3->upload(Request::file('invoice'), 'invoices');
 
 ### JsonStorage
 
-`Laika\Core\Storage\JsonStorage(?string $path = null)` keeps small JSON documents in `lf-storage/json/{name}.json`:
+`Laika\Engine\Storage\JsonStorage(?string $path = null)` keeps small JSON documents in `lf-storage/json/{name}.json`:
 
 ```php
-use Laika\Core\Storage\JsonStorage;
+use Laika\Engine\Storage\JsonStorage;
 
 $store = new JsonStorage();
 $store->set('settings', ['theme' => 'dark']);            // merge
@@ -203,12 +203,12 @@ $next = $store->mutate('counters', fn (array $r) => [
 
 ### RedisStorage and MemcachedStorage
 
-> For caching, use [`Laika\Service\Cache`](../20_cache/01_basic.md) instead. It has per-call TTLs, `has()`, `remember()` and `flush()`, a file driver that needs no server, and it tells a stored `null` apart from a miss — these classes cannot.
+> For caching, use [`Laika\Engine\Services\Cache`](../20_cache/01_basic.md) instead. It has per-call TTLs, `has()`, `remember()` and `flush()`, a file driver that needs no server, and it tells a stored `null` apart from a miss — these classes cannot.
 
 Simple key/value stores, reading [`lf-config/redis.php`](../01_getting-started/03_configuration.md#lf-configredisphp) and [`lf-config/memcached.php`](../01_getting-started/03_configuration.md#lf-configmemcachedphp):
 
 ```php
-use Laika\Core\Storage\RedisStorage;
+use Laika\Engine\Storage\RedisStorage;
 
 $cache = new RedisStorage();
 $cache->expire(600);                       // TTL for later set() calls; 0 = none
@@ -221,7 +221,7 @@ Both have `set(string $key, mixed $value): bool`, `get(string $key): mixed` (nul
 
 ### Connection Factories
 
-`Laika\Core\Storage\Connection\RedisConnection::make(array $overrides = []): Redis`, `MemcachedConnection::make(): Memcached` and `S3Connection::make(): S3Client` build bare clients from the same config files — use them when you need the client itself. A missing extension or a failed Redis connect throws `ExtensionException`.
+`Laika\Engine\Storage\Connection\RedisConnection::make(array $overrides = []): Redis`, `MemcachedConnection::make(): Memcached` and `S3Connection::make(): S3Client` build bare clients from the same config files — use them when you need the client itself. A missing extension or a failed Redis connect throws `ExtensionException`.
 
 ## See Also
 

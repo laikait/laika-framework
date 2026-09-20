@@ -1,17 +1,17 @@
 # Routing
 
-Routes live in `lf-routes/*.php` — plain PHP files that call `Laika\Route\Url` at the top level. Every file in `lf-routes/` (subdirectories included) is loaded when a request is dispatched, so adding a file is all it takes.
+Routes live in `lf-routes/*.php` — plain PHP files that call `Laika\Engine\Route\Url` at the top level. Every file in `lf-routes/` (subdirectories included) is loaded when a request is dispatched, so adding a file is all it takes.
 
 ```php
 // lf-routes/web.php
-use Laika\Route\Url;
+use Laika\Engine\Route\Url;
 
 Url::get('/', 'HomeController@index')->name('home');
 Url::get('/users/{id}', 'UserController@show')->name('users.show');
 Url::post('/users', 'UserController@store');
 ```
 
-> **Two classes called `Url`.** Route files use **`Laika\Route\Url`** (the router). `Laika\Service\Url` is a different class — a relay for building and inspecting URLs (`Url::base()`, `Url::segment()`). If a route call fails with "undefined method", check the `use` line.
+> **Two classes called `Url`.** Route files use **`Laika\Engine\Route\Url`** (the router). `Laika\Engine\Services\Url` is a different class — a relay for building and inspecting URLs (`Url::base()`, `Url::segment()`). If a route call fails with "undefined method", check the `use` line.
 
 ## HTTP Methods
 
@@ -132,7 +132,7 @@ There are two ways to attach pipelines and filters to a group, and they behave d
 **`Handler::registerGroup()` — recommended.** Pipelines and filters are passed up front, apply to every route registered inside, and are inherited by nested groups:
 
 ```php
-use Laika\Route\Handler;
+use Laika\Engine\Route\Handler;
 
 Handler::registerGroup('admin', function () {
     Url::get('/dashboard', 'Admin\DashboardController@index');
@@ -179,7 +179,7 @@ Url::get('/admin', 'AdminController@index', ['Authenticate']);
 Globally, for every matched route:
 
 ```php
-Url::globalPipeline([\Laika\Shield\Pipeline\ShieldPipeline::class]);
+Url::globalPipeline([\Laika\Engine\Shield\Pipeline\ShieldPipeline::class]);
 Url::globalFilter(['LogResponse']);
 ```
 
@@ -195,8 +195,8 @@ Url::fallback('admin', fn () => '<h1>Admin page not found</h1>');
 
 // Default, for everything else
 Url::fallback(null, function () {
-    \Laika\Service\Response::setStatus(404);
-    return (new \Laika\Core\App\Template())->view('errors/404');
+    \Laika\Engine\Services\Response::setStatus(404);
+    return (new \Laika\Engine\App\Template())->view('errors/404');
 });
 ```
 
@@ -216,7 +216,7 @@ To load route files from outside `lf-routes/` — a package or module — regist
 
 ```php
 // in a hook file
-use Laika\Service\Resource;
+use Laika\Engine\Services\Resource;
 
 Resource::register('routes', APP_PATH . '/modules/blog/routes');
 ```
@@ -225,11 +225,11 @@ Packages can declare it in `composer.json` instead. See [Resources](../14_resour
 
 ## Dispatch
 
-`index.php` calls `Url::dispatch()` once, after the framework boots. The full sequence — CORS headers, static files, route loading, matching, pipelines, controller, filters, rendering — is described in [Request Lifecycle](../01_getting-started/05_request-lifecycle.md#2-dispatch).
+`public/index.php` calls `Url::dispatch()` once, after the framework boots. The full sequence — CORS headers, static files, route loading, matching, pipelines, controller, filters, rendering — is described in [Request Lifecycle](../01_getting-started/05_request-lifecycle.md#2-dispatch).
 
 ## API Reference
 
-### `Laika\Route\Url`
+### `Laika\Engine\Route\Url`
 
 | Method | |
 |---|---|

@@ -13,10 +13,10 @@ declare(strict_types=1);
 namespace App\Schema;
 
 use App\Model\StaffsModel;
-use Laika\Model\Schema\Schema;
-use Laika\Model\Schema\Blueprint;
-use Laika\Model\Contract\SchemaAbstract;
-use Laika\Core\Exceptions\SchemaException;
+use Laika\Engine\Model\Schema\Schema;
+use Laika\Engine\Model\Schema\Blueprint;
+use Laika\Engine\Model\Contract\SchemaAbstract;
+use Laika\Engine\Exceptions\SchemaException;
 
 class StaffsModelSchema extends SchemaAbstract
 {

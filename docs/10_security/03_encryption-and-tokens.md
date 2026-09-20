@@ -1,6 +1,6 @@
 # Encryption & Tokens
 
-laika-core's cryptography helpers, all keyed from the application secret: encryption, password hashing, signatures, random tokens, JWTs and IDs.
+The Core module's cryptography helpers, all keyed from the application secret: encryption, password hashing, signatures, random tokens, JWTs and IDs.
 
 ## App Key
 
@@ -11,7 +11,7 @@ laika-core's cryptography helpers, all keyed from the application secret: encryp
 - **A new key invalidates everything signed or encrypted with the old one** — `Vault` ciphertexts, `hash()` values, signatures, JWTs and CSRF tokens. Password hashes are not affected.
 - Generate the key once per environment, keep it out of version control, and back it up with the database if you store encrypted data.
 
-| `Laika\Service\AppKey` method | |
+| `Laika\Engine\Services\AppKey` method | |
 |---|---|
 | `get(): string` | The key; throws `AppKeyException` if missing or invalid |
 | `generate(int $byte = 32): void` | Write a new key, replacing any existing one |
@@ -20,10 +20,10 @@ laika-core's cryptography helpers, all keyed from the application secret: encryp
 
 ## Vault
 
-`Laika\Service\Vault` — encryption, keyed hashing, password hashing, signing and random values. Requires `ext-openssl`.
+`Laika\Engine\Services\Vault` — encryption, keyed hashing, password hashing, signing and random values. Requires `ext-openssl`.
 
 ```php
-use Laika\Service\Vault;
+use Laika\Engine\Services\Vault;
 
 // Encryption (authenticated, AES-256-GCM by default)
 $secret = Vault::encrypt('card-ending-4242');
@@ -63,10 +63,10 @@ Vault::numericOtp(6);    // "048213"
 
 ## Token (JWT)
 
-`Laika\Service\Token` issues stateless tokens that carry a user payload:
+`Laika\Engine\Services\Token` issues stateless tokens that carry a user payload:
 
 ```php
-use Laika\Service\Token;
+use Laika\Engine\Services\Token;
 
 $token = Token::generate(['id' => 7, 'role' => 'staff']);
 
@@ -92,8 +92,8 @@ The payload is an HS256 JWT signed with the app key, then **encrypted with `Vaul
 ## Uid and Unique
 
 ```php
-use Laika\Core\Generator\Uid;
-use Laika\Service\Unique;
+use Laika\Engine\Generator\Uid;
+use Laika\Engine\Services\Unique;
 
 Uid::make();                               // "3f2b8c1e-9a4d-4c2f-8e7b-1d6a0f5c9b21" (RFC 4122 v4)
 Uid::isValid($routeParam);                 // reject malformed ids before querying
@@ -124,10 +124,10 @@ Uniqueness comes only from `{c}` and `{n}` — put a unique index on the column 
 
 ## Regex Rules
 
-`Laika\Service\Regex` holds named, reusable validation patterns:
+`Laika\Engine\Services\Regex` holds named, reusable validation patterns:
 
 ```php
-use Laika\Service\Regex;
+use Laika\Engine\Services\Regex;
 
 Regex::validate('email', $input);                          // bool
 Regex::validate('minimum', $password, 12);                 // extra args configure the rule
@@ -137,7 +137,7 @@ Regex::checkRules('Abc123!');                              // ['alpha' => false,
 
 Built-in rules: `alpha`, `alphanumeric`, `numeric`, `email`, `url`, `hasupper`, `haslower`, `hasnumeric`, `hasspecial`, `minimum` (default 6), `maximum` (default 100), `password`. Pass the password minimum explicitly — its default is 6.
 
-A custom rule extends `Laika\Core\Regex\Abstracts\Rule`, implements `pattern(): string`, and is registered with `Regex::addRule()`. See the [Regex README](https://github.com/laikait/laika-core/blob/main/src/Regex/README.MD).
+A custom rule extends `Laika\Engine\Regex\Abstracts\Rule`, implements `pattern(): string`, and is registered with `Regex::addRule()`. See the [Regex README](https://github.com/laikait/laika-engine/blob/main/src/Regex/README.MD).
 
 ## See Also
 

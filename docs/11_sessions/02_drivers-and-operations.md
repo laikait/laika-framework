@@ -84,16 +84,16 @@ Create the directory during deployment (the driver won't), make it writable by t
 
 ## Custom Drivers
 
-Not supported. The five drivers are a closed list, and `SessionConfig` has no way to register another. Every driver implements `Laika\Session\Contracts\SessionDriverInterface` — PHP's `SessionHandlerInterface` and `SessionUpdateTimestampHandlerInterface`, plus `setup(): void`, which runs once per process before the first session starts.
+Not supported. The five drivers are a closed list, and `SessionConfig` has no way to register another. Every driver implements `Laika\Engine\Session\Contracts\SessionDriverInterface` — PHP's `SessionHandlerInterface` and `SessionUpdateTimestampHandlerInterface`, plus `setup(): void`, which runs once per process before the first session starts.
 
 ## Exceptions
 
 | Exception | Thrown when |
 |---|---|
-| `Laika\Session\Exceptions\SessionHandlerException` | No driver is configured and the session starts; a file `path` doesn't exist; `SessionConfig::model()` without laika-model; a `mysql` table name that isn't `[A-Za-z0-9_]+`; a driver built without its client |
+| `Laika\Engine\Session\Exceptions\SessionHandlerException` | No driver is configured and the session starts; a file `path` doesn't exist; `SessionConfig::model()` without the Model module; a `mysql` table name that isn't `[A-Za-z0-9_]+`; a driver built without its client |
 | `InvalidArgumentException` | `Session::scope('')` — an empty scope name |
-| `PDOException` and laika-model exceptions | The `mysql` and `model` drivers, on database errors |
-| `Laika\Core\Exceptions\ExtensionException` | `Init::redis()` without `ext-redis`, or when Redis is unreachable or rejects the credentials; `Init::memcached()` without `ext-memcached` (an unreachable Memcached never throws) |
+| `PDOException` and Model exceptions | The `mysql` and `model` drivers, on database errors |
+| `Laika\Engine\Exceptions\ExtensionException` | `Init::redis()` without `ext-redis`, or when Redis is unreachable or rejects the credentials; `Init::memcached()` without `ext-memcached` (an unreachable Memcached never throws) |
 
 ## See Also
 
