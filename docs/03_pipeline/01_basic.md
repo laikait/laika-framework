@@ -15,7 +15,7 @@ Pipelines live in `lf-app/Pipeline/`, namespace `App\Pipeline`.
 ```php
 namespace App\Pipeline;
 
-use Laika\Route\Contracts\PipelineInterface;
+use Laika\Engine\Route\Contracts\PipelineInterface;
 
 class Authenticate implements PipelineInterface
 {
@@ -35,7 +35,7 @@ class Authenticate implements PipelineInterface
 ## Attaching Pipelines
 
 ```php
-use Laika\Route\Url;
+use Laika\Engine\Route\Url;
 use App\Pipeline\Authenticate;
 
 Url::get('/dashboard', 'DashboardController@index')->pipeline(Authenticate::class);
@@ -48,7 +48,7 @@ Url::globalPipeline(['Authenticate']);
 
 For groups, see [Routing → Middleware on Groups](../02_routing/01_basic.md#middleware-on-groups).
 
-**Name resolution:** a short name (`'Authenticate'`, `'Admin\Role'`) resolves to `App\Pipeline\...`. A fully qualified class name (`Authenticate::class`, `\Laika\Shield\Pipeline\ShieldPipeline::class`) is used as-is.
+**Name resolution:** a short name (`'Authenticate'`, `'Admin\Role'`) resolves to `App\Pipeline\...`. A fully qualified class name (`Authenticate::class`, `\Laika\Engine\Shield\Pipeline\ShieldPipeline::class`) is used as-is.
 
 ## Return Behavior
 
@@ -76,8 +76,8 @@ public function handle(callable $next, array &$params): ?string
 Set the status on the `Response` relay — a bare `http_response_code()` is overwritten when the response is sent:
 
 ```php
-use Laika\Service\{Response, Redirect};
-use Laika\Session\Session;
+use Laika\Engine\Services\{Response, Redirect};
+use Laika\Engine\Session\Session;
 
 class Authenticate implements PipelineInterface
 {
@@ -160,9 +160,9 @@ Pipelines are built through the service container, so type-hint what you need in
 ```php
 namespace App\Pipeline;
 
-use Laika\Auth\AuthManager;
-use Laika\Route\Contracts\PipelineInterface;
-use Laika\Service\Redirect;
+use Laika\Engine\Auth\AuthManager;
+use Laika\Engine\Route\Contracts\PipelineInterface;
+use Laika\Engine\Services\Redirect;
 
 class Authenticate implements PipelineInterface
 {
@@ -179,7 +179,7 @@ class Authenticate implements PipelineInterface
 }
 ```
 
-> `Redirect::to()` takes a **route name** or an **absolute URL** — not a path. For a path, build the URL first: `Redirect::to(\Laika\Service\Url::build('login'))`.
+> `Redirect::to()` takes a **route name** or an **absolute URL** — not a path. For a path, build the URL first: `Redirect::to(\Laika\Engine\Services\Url::build('login'))`.
 
 The rules:
 
@@ -192,13 +192,13 @@ The rules:
 
    An unbound interface throws, naming the parameter — unless the parameter is nullable or has a default, in which case you silently get `null` or the default.
 3. **A `singleton()` bound under a class name** is shared by every pipeline, filter and controller in the request.
-4. **Don't type-hint relays or core classes** (`Laika\Service\Config`, `Laika\Core\Http\Response`). Core services are bound under keys, not class names, so you'd get a fresh object or a proxy with no instance methods. Call relays statically, as above.
+4. **Don't type-hint relays or core classes** (`Laika\Engine\Services\Config`, `Laika\Engine\Http\Response`). Core services are bound under keys, not class names, so you'd get a fresh object or a proxy with no instance methods. Call relays statically, as above.
 
 `handle()` keeps its fixed signature — the constructor is the injection point. A pipeline is instantiated only when the chain reaches it.
 
 ## Rules
 
-- Implement `Laika\Route\Contracts\PipelineInterface` (any class with a matching `handle()` method is accepted).
+- Implement `Laika\Engine\Route\Contracts\PipelineInterface` (any class with a matching `handle()` method is accepted).
 - Signature: `handle(callable $next, array &$params): ?string`
 - An unknown pipeline name throws `PipelineException` (status 500) when a request reaches it.
 

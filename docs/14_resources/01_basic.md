@@ -2,7 +2,7 @@
 
 A **resource** is a named directory whose PHP files the framework knows how to find — your models, controllers, jobs, pipelines, filters, schemas, commands, relay providers, routes and hooks are all resources. This is why you never register a class: dropping it in the right directory is enough.
 
-`Laika\Service\Resource` is the registry that maps each name to its directories; `Laika\Service\Infra` is a friendlier reader on top of it.
+`Laika\Engine\Services\Resource` is the registry that maps each name to its directories; `Laika\Engine\Services\Infra` is a friendlier reader on top of it.
 
 Discovery is **lazy**. Registering a resource only records *where to look* — nothing is scanned until something asks, and every answer is memoised for the rest of the request.
 
@@ -11,30 +11,30 @@ Discovery is **lazy**. Registering a resource only records *where to look* — n
 | Name | Path | Namespace | Contract |
 |---|---|---|---|
 | `models` | `lf-app/Model` | `App\Model` | — |
-| `schemas` | `lf-app/Schema` | `App\Schema` | `Laika\Model\Contract\SchemaAbstract` |
+| `schemas` | `lf-app/Schema` | `App\Schema` | `Laika\Engine\Model\Contract\SchemaAbstract` |
 | `controllers` | `lf-app/Controller` | `App\Controller` | — |
-| `jobs` | `lf-app/Job` | `App\Job` | `Laika\Queue\Abstracts\Job` |
-| `pipelines` | `lf-app/Pipeline` | `App\Pipeline` | `Laika\Route\Contracts\PipelineInterface` |
-| `filters` | `lf-app/Filter` | `App\Filter` | `Laika\Route\Contracts\FilterInterface` |
-| `commands` | `lf-app/Command` | `App\Command` | `Laika\Cli\Contracts\CommandInterface` |
-| `relays` | `lf-app/Relay` | `App\Relay` | `Laika\Relay\RelayProvider` |
+| `jobs` | `lf-app/Job` | `App\Job` | `Laika\Engine\Queue\Abstracts\Job` |
+| `pipelines` | `lf-app/Pipeline` | `App\Pipeline` | `Laika\Engine\Route\Contracts\PipelineInterface` |
+| `filters` | `lf-app/Filter` | `App\Filter` | `Laika\Engine\Route\Contracts\FilterInterface` |
+| `commands` | `lf-app/Command` | `App\Command` | `Laika\Engine\Cli\Contracts\CommandInterface` |
+| `relays` | `lf-app/Relay` | `App\Relay` | `Laika\Engine\Relay\RelayProvider` |
 | `routes` | `lf-routes` | — (file paths) | — |
 | `hooks` | `lf-hooks` | — (file paths) | — |
 
-Packages add to these. In the 5.1 package set:
+Packages add to these. `laikait/laika-engine` contributes:
 
-| Package | Contributes |
+| Module | Contributes |
 |---|---|
-| laika-core | `functions` (its helper functions) and `hooks` (its template hooks) |
-| laika-queue | `models` and `schemas` (the job tables) |
-| laika-shield | `relays` (the `shield` relay) and `pipelines` (`ShieldPipeline`) |
+| Core | `functions` (its helper functions) and `hooks` (its template hooks) |
+| Queue | `models` and `schemas` (the job tables) |
+| Shield | `relays` (the `shield` relay) and `pipelines` (`ShieldPipeline`) |
 
 `php laika resource:list` shows exactly what your install resolves. (An install whose `vendor/composer/installed.json` predates core 5.1 may still list models and schemas from laika-core, laika-auth and laika-session; `composer update` refreshes it.)
 
 ## Reading Resources
 
 ```php
-use Laika\Service\Infra;
+use Laika\Engine\Services\Infra;
 
 Infra::getModelClasses();       // ['users' => 'App\Model\UsersModel', ...]  keyed by table
 Infra::getSchemaClasses();      // keyed by table
@@ -54,7 +54,7 @@ Infra::get('policies');         // any class-map resource, e.g. one you declare
 Or go straight to the registry:
 
 ```php
-use Laika\Service\Resource;
+use Laika\Engine\Services\Resource;
 
 Resource::getClasses('policies');       // class names, checked to exist and satisfy the contract
 Resource::getFiles('routes');           // file paths
@@ -134,7 +134,7 @@ Resource::package(__DIR__ . '/../composer.json');
 For anything dynamic, register a directory directly — from a hook file. This is the escape hatch, not the normal path:
 
 ```php
-use Laika\Service\Resource;
+use Laika\Engine\Services\Resource;
 
 Resource::register('routes', APP_PATH . '/modules/blog/routes');
 Resource::register('policies', APP_PATH . '/modules/blog/Policy', 'Blog\\Policy', PolicyInterface::class);

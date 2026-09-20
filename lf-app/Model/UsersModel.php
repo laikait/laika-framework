@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace App\Model;
 
-use Laika\Model\Model;
+use Laika\Engine\Model\Model;
 
 class UsersModel extends Model
 {

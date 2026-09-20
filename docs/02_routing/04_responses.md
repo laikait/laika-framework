@@ -1,6 +1,6 @@
 # Responses
 
-A controller returns a **string**. The router passes it through the filters and sends it, using the status, content type and headers held by the `Laika\Service\Response` relay. This page covers everything you can send: HTML, JSON, plain text, redirects, cookies, downloads and error statuses.
+A controller returns a **string**. The router passes it through the filters and sends it, using the status, content type and headers held by the `Laika\Engine\Services\Response` relay. This page covers everything you can send: HTML, JSON, plain text, redirects, cookies, downloads and error statuses.
 
 ## How a Response Is Sent
 
@@ -26,7 +26,7 @@ Two consequences:
 The default. Return a rendered template or any string:
 
 ```php
-use Laika\Core\App\Template;
+use Laika\Engine\App\Template;
 
 public function index(): string
 {
@@ -41,7 +41,7 @@ public function index(): string
 Either set the content type and return a JSON string:
 
 ```php
-use Laika\Service\Response;
+use Laika\Engine\Services\Response;
 
 public function status(): string
 {
@@ -84,7 +84,7 @@ return "pong";
 ## Status Codes and Headers
 
 ```php
-use Laika\Service\Response;
+use Laika\Engine\Services\Response;
 
 Response::setStatus(201);
 Response::setHeader('X-Total-Count', '42');
@@ -112,7 +112,7 @@ The `Response` relay is a singleton, so a status or header set in a pipeline is 
 ## Redirects
 
 ```php
-use Laika\Service\Redirect;
+use Laika\Engine\Services\Redirect;
 
 Redirect::to('users.show', ['id' => 7]);           // a named route
 Redirect::to('https://example.org/docs', code: 301); // an absolute URL
@@ -128,7 +128,7 @@ Redirect::with('Profile saved.', true)->to('profile'); // with a flash message
 
 - Both `to()` and `back()` send the `Location` header and **exit** — nothing after them runs.
 - Allowed codes are 301, 302 and 303; anything else throws `HttpException`.
-- **`to()` does not take a path.** `Redirect::to('/login')` is treated as a route name and throws `RuntimeException` ("Named route '/login' not found."). For a path, build an absolute URL: `Redirect::to(Url::build('login'))` (with `Laika\Service\Url`).
+- **`to()` does not take a path.** `Redirect::to('/login')` is treated as a route name and throws `RuntimeException` ("Named route '/login' not found."). For a path, build an absolute URL: `Redirect::to(Url::build('login'))` (with `Laika\Engine\Services\Url`).
 - **Never pass user input to `to()`** (a `?next=` parameter, for instance) without checking its host — any value with a host is sent to the browser as-is, which makes an open redirect.
 
 ### Flash Messages
@@ -162,7 +162,7 @@ if (!$user) {
 Or throw an HTTP exception and let the error handler answer. With a JSON request (or `X-Requested-With: XMLHttpRequest`) it replies with the status and a JSON body:
 
 ```php
-use Laika\Core\Exceptions\{HttpException, NotFoundHttpException, ValidationException};
+use Laika\Engine\Exceptions\{HttpException, NotFoundHttpException, ValidationException};
 
 throw new NotFoundHttpException();                    // 404
 throw new HttpException(403, 'You cannot edit this order.');
@@ -174,7 +174,7 @@ See [Errors & Logging](../18_errors-and-logging/01_basic.md) for the details —
 ## Cookies
 
 ```php
-use Laika\Service\Cookie;
+use Laika\Engine\Services\Cookie;
 
 Cookie::set('theme', 'dark');                             // 7 days, httponly, SameSite=Strict
 Cookie::ttl(3600)->path('/admin')->set('tab', 'users');   // options apply to this call only
@@ -201,7 +201,7 @@ Cookie::pop('theme');                                     // delete
 ## File Downloads
 
 ```php
-use Laika\Service\File;
+use Laika\Engine\Services\File;
 
 public function invoice(string $id): ?string
 {
@@ -218,8 +218,8 @@ public function invoice(string $id): ?string
 |---|---|
 | `named('users.show', ['id' => 5])` | Absolute URL of a named route |
 | `asset('assets/css/app.css')` | Absolute URL of a static file, with `?v={mtime}` for cache-busting |
-| `Laika\Service\Url::build('search', ['q' => 'laika'])` | Absolute URL of any path |
-| `Laika\Route\Url::url('users.show', ['id' => 5])` | Path only (`/users/5`) |
+| `Laika\Engine\Services\Url::build('search', ['q' => 'laika'])` | Absolute URL of any path |
+| `Laika\Engine\Route\Url::url('users.show', ['id' => 5])` | Path only (`/users/5`) |
 
 ## See Also
 

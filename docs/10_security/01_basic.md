@@ -1,6 +1,6 @@
 # Security (Shield)
 
-[`laikait/laika-shield`](https://github.com/laikait/laika-shield) is a firewall that inspects each request before your routes run: rate limiting, IP and country blocking, SQL injection and XSS detection, and request filtering. It's installed with the framework but **does nothing until you add its pipeline**.
+The [Shield module](https://github.com/laikait/laika-engine/tree/main/docs/shield) of `laikait/laika-engine` is a firewall that inspects each request before your routes run: rate limiting, IP and country blocking, SQL injection and XSS detection, and request filtering. It's installed with the framework but **does nothing until you add its pipeline**.
 
 ## Quick Start
 
@@ -8,8 +8,8 @@ Register the ready-made pipeline globally — in a route file or a hook file:
 
 ```php
 // lf-routes/web.php
-use Laika\Route\Url;
-use Laika\Shield\Pipeline\ShieldPipeline;
+use Laika\Engine\Route\Url;
+use Laika\Engine\Shield\Pipeline\ShieldPipeline;
 
 Url::globalPipeline(ShieldPipeline::class);
 ```
@@ -34,11 +34,11 @@ Global pipelines run only for matched routes — static files, 404s and fallback
 
 ## Configuring
 
-Change settings with `Laika\Shield\ShieldConfig` in a hook file. It holds one shared configuration, which `ShieldPipeline` reads:
+Change settings with `Laika\Engine\Shield\ShieldConfig` in a hook file. It holds one shared configuration, which `ShieldPipeline` reads:
 
 ```php
 // lf-hooks/shield.php
-use Laika\Shield\ShieldConfig;
+use Laika\Engine\Shield\ShieldConfig;
 
 ShieldConfig::add('rate.limit', 'max.hits', 120);
 ShieldConfig::add('rate.limit', 'storage.dir', APP_PATH . '/lf-storage/shield');
@@ -64,12 +64,12 @@ return [
 
 ```php
 // lf-hooks/shield.php
-\Laika\Shield\ShieldConfig::instance()->fill(config('shield'));
+\Laika\Engine\Shield\ShieldConfig::instance()->fill(config('shield'));
 ```
 
 `fill()` merges over the defaults — keys you don't mention keep their default values.
 
-> **Behaviours to know:** `ShieldConfig::add()` with an array value **merges** into the existing list rather than replacing it, and an unknown section or key is **silently ignored** — check spelling against the table below. The `Laika\Shield\Service\ShieldConfig` relay forwards to the same shared instance, so either class works.
+> **Behaviours to know:** `ShieldConfig::add()` with an array value **merges** into the existing list rather than replacing it, and an unknown section or key is **silently ignored** — check spelling against the table below. The `Laika\Engine\Shield\Service\ShieldConfig` relay forwards to the same shared instance, so either class works.
 
 ### Configuration Keys
 
@@ -94,11 +94,11 @@ return [
 | | `content.length.max`, `content.length.min` | `null` | Bytes |
 | `country` | `db`, `blocklist`, `allowlist` | — | Country blocking with a MaxMind database; active only when `db` and a list are set |
 
-A GeoLite2 country database ships with the package at `vendor/laikait/laika-shield/src/Storage/GeoLite2-Country.mmdb`:
+A GeoLite2 country database ships with the package at `vendor/laikait/laika-engine/src/Shield/Storage/GeoLite2-Country.mmdb`:
 
 ```php
 ShieldConfig::add('country', [
-    'db'        => APP_PATH . '/vendor/laikait/laika-shield/src/Storage/GeoLite2-Country.mmdb',
+    'db'        => APP_PATH . '/vendor/laikait/laika-engine/src/Shield/Storage/GeoLite2-Country.mmdb',
     'blocklist' => ['KP', 'IR'],
 ]);
 ```
@@ -114,10 +114,10 @@ Other static methods: `ShieldConfig::get(?string $key = null)` (the configuratio
 ```php
 namespace App\Pipeline;
 
-use Laika\Route\Contracts\PipelineInterface;
-use Laika\Shield\Shield as Firewall;          // alias — the class name would clash
-use Laika\Shield\Exceptions\{FirewallException, RateLimitExceededException};
-use Laika\Service\Response;
+use Laika\Engine\Route\Contracts\PipelineInterface;
+use Laika\Engine\Shield\Shield as Firewall;          // alias — the class name would clash
+use Laika\Engine\Shield\Exceptions\{FirewallException, RateLimitExceededException};
+use Laika\Engine\Services\Response;
 
 class StrictShield implements PipelineInterface
 {
@@ -171,7 +171,7 @@ On a block, `run()` sets the HTTP status (if headers haven't been sent) and thro
 ## Custom Rules
 
 ```php
-use Laika\Shield\Contract\RuleInterface;
+use Laika\Engine\Shield\Contract\RuleInterface;
 
 class BlockBadReferrer implements RuleInterface
 {
@@ -184,7 +184,7 @@ class BlockBadReferrer implements RuleInterface
     public function additionalHeader(): void {}
 }
 
-(new \Laika\Shield\Shield())->addRule(new BlockBadReferrer())->run();
+(new \Laika\Engine\Shield\Shield())->addRule(new BlockBadReferrer())->run();
 ```
 
 ## See Also
@@ -192,4 +192,4 @@ class BlockBadReferrer implements RuleInterface
 - [CSRF & CORS](02_csrf-and-cors.md)
 - [Encryption & Tokens](03_encryption-and-tokens.md)
 - [Pipelines](../03_pipeline/01_basic.md)
-- [laika-shield README](https://github.com/laikait/laika-shield) — rule internals and `IpHelper`
+- [Shield module docs](https://github.com/laikait/laika-engine/tree/main/docs/shield) — rule internals and `IpHelper`

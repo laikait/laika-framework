@@ -14,7 +14,7 @@ New to Laika? Read **Getting Started** in order. Looking for something specific?
 | [Project Structure](01_getting-started/02_project-structure.md) | What every directory is for |
 | [Configuration](01_getting-started/03_configuration.md) | `lf-config/*.php`, `config()`, `lf-inc/const.php` |
 | [CLI Reference](01_getting-started/04_cli.md) | All 46 `php laika` commands, writing your own |
-| [Request Lifecycle](01_getting-started/05_request-lifecycle.md) | What runs, in what order, from `index.php` to the response |
+| [Request Lifecycle](01_getting-started/05_request-lifecycle.md) | What runs, in what order, from `public/index.php` to the response |
 | [Upgrading](01_getting-started/06_upgrading.md) | Moving to laika-core 5.1 |
 
 ## The Basics
@@ -43,7 +43,7 @@ New to Laika? Read **Getting Started** in order. Looking for something specific?
 | Guide | Covers |
 |---|---|
 | [Services & Relays](07_services-and-relay/01_basic.md) | The container, providers, relays, auto-wiring |
-| [Relay List](07_services-and-relay/02_relay-list.md) | Every `Laika\Service\*` relay |
+| [Relay List](07_services-and-relay/02_relay-list.md) | Every `Laika\Engine\Services\*` relay |
 | [Hooks](08_hooks/01_basic.md) | `lf-hooks/`, `add_hook()` / `do_hook()` / `apply_hook()` |
 | [Resources](14_resources/01_basic.md) | How classes are discovered; adding your own resource types |
 | [Helper Functions](15_helpers/01_basic.md) | Every global helper function |
@@ -70,6 +70,7 @@ New to Laika? Read **Getting Started** in order. Looking for something specific?
 | [Files & Storage](16_files-and-storage/01_basic.md) | Uploads, images, files, local and S3 storage |
 | [Errors & Logging](18_errors-and-logging/01_basic.md) | The error handler, HTTP exceptions, logs, activity log, options |
 | [Utilities](19_utilities/01_basic.md) | Dates, precise math, cron, shell commands, IP maths |
+| [Extending the Framework](21_extending/01_basic.md) | Custom drivers, macros and subclassing framework classes |
 
 ## Operations
 
@@ -103,6 +104,8 @@ New to Laika? Read **Getting Started** in order. Looking for something specific?
 | Cache a slow value, query or page | [Caching](20_cache/01_basic.md) |
 | Run code on every request | [Hooks → Hook Files](08_hooks/01_basic.md#hook-files) |
 | Make a service available everywhere | [Services & Relays](07_services-and-relay/01_basic.md) |
+| Add my own cache, session, queue, database or mail driver | [Extending → Custom Drivers](21_extending/01_basic.md#custom-drivers) |
+| Add a method to Model, Request or Response | [Extending → Macros](21_extending/01_basic.md#macros) |
 | Add my own `php laika` command | [CLI → Writing Your Own Commands](01_getting-started/04_cli.md#writing-your-own-commands) |
 | Change the timezone | [Utilities → Date](19_utilities/01_basic.md#date) |
 | Go to production | [Deployment](13_deployment/01_basic.md#pre-deploy-checklist) |
@@ -111,21 +114,21 @@ New to Laika? Read **Getting Started** in order. Looking for something specific?
 
 ## Package Reference
 
-These docs explain how the packages fit together inside an application. Each package's own README goes deeper into its internals:
+The whole framework ships in one package, [`laikait/laika-engine`](https://github.com/laikait/laika-engine). These docs explain how its modules fit together inside an application; the engine's `docs/<module>/` folders go deeper into their internals:
 
-| Package | Provides |
-|---|---|
-| [laika-core](https://github.com/laikait/laika-core) | Bootstrap, request/response, validation, templates, relays for every core service, helpers, storage, security, errors |
-| [laika-route](https://github.com/laikait/laika-route) | Router, dispatcher, pipelines and filters |
-| [laika-model](https://github.com/laikait/laika-model) | PDO query builder, schema builder, backup, SQL converter |
-| [laika-relay](https://github.com/laikait/laika-relay) | Service container and relay base class |
-| [laika-session](https://github.com/laikait/laika-session) | File, database, Redis and Memcached session handlers |
-| [laika-auth](https://github.com/laikait/laika-auth) | Session, cookie and token guards |
-| [laika-shield](https://github.com/laikait/laika-shield) | Firewall pipeline |
-| [laika-queue](https://github.com/laikait/laika-queue) | Background job queue and worker |
-| [laika-cache](https://github.com/laikait/laika-cache) | Cache drivers: file, array, Redis, Memcached |
-| [laika-mailman](https://github.com/laikait/laika-mailman) | Mail sending (PHPMailer) and IMAP/POP3 reading |
-| [laika-cli](https://github.com/laikait/laika-cli) | The `laika` command-line tool |
+| Module | Namespace | Provides |
+|---|---|---|
+| Core | `Laika\Engine\*` (App, Http, Helper, Support, …) | Bootstrap, request/response, validation, templates, helpers, storage, security, errors |
+| Route | `Laika\Engine\Route` | Router, dispatcher, pipelines and filters |
+| Model | `Laika\Engine\Model` | PDO query builder, schema builder, backup, SQL converter |
+| Relay | `Laika\Engine\Relay`, `Laika\Engine\Services` | Service container, relay base class and the core service relays |
+| Session | `Laika\Engine\Session` | File, database, Redis and Memcached session handlers |
+| Auth | `Laika\Engine\Auth` | Session, cookie and token guards |
+| Shield | `Laika\Engine\Shield` | Firewall pipeline (rate limiting, IP/country blocking, SQLi/XSS detection) |
+| Queue | `Laika\Engine\Queue` | Background job queue and worker |
+| Cache | `Laika\Engine\Cache` | Cache drivers: file, array, Redis, Memcached |
+| Mailman | `Laika\Engine\Mailman` | Mail sending (PHPMailer) and IMAP/POP3 reading |
+| Cli | `Laika\Engine\Cli` | The `laika` command-line tool |
 
 Where a package README and these docs disagree about behaviour inside a Laika app, these docs describe the current code.
 

@@ -70,22 +70,23 @@ The [docs index](docs/README.md) also has a "common tasks" table — the fastest
 
 ## 🧩 The Laika Ecosystem
 
-`laikait/laika-framework` is the application skeleton; the actual functionality ships as independently versioned Composer packages under `vendor/laikait/`:
+`laikait/laika-framework` is the application skeleton; the actual functionality ships in one Composer package, [`laikait/laika-engine`](https://github.com/laikait/laika-engine), installed at `vendor/laikait/laika-engine`:
 
-| Package | Purpose |
-|---|---|
-| [laika-core](https://github.com/laikait/laika-core) | Bootstrap, request/response, validation, templates, helpers, storage, security, errors |
-| [laika-route](https://github.com/laikait/laika-route) | Router, dispatcher, pipelines & filters |
-| [laika-model](https://github.com/laikait/laika-model) | PDO query builder, schema builder, backup, SQL converter |
-| [laika-relay](https://github.com/laikait/laika-relay) | Service container & `Relay` base class |
-| [laika-session](https://github.com/laikait/laika-session) | File/database/Redis/Memcached sessions |
-| [laika-auth](https://github.com/laikait/laika-auth) | Session, cookie and token guards |
-| [laika-shield](https://github.com/laikait/laika-shield) | Firewall middleware (rate limiting, IP/country blocking, SQLi/XSS detection) |
-| [laika-queue](https://github.com/laikait/laika-queue) | Background job queue & worker |
-| [laika-mailman](https://github.com/laikait/laika-mailman) | Mail sending (PHPMailer) and IMAP/POP3 reading |
-| [laika-cli](https://github.com/laikait/laika-cli) | The `laika` code generator CLI |
+| Module | Namespace | Provides |
+|---|---|---|
+| Core | `Laika\Engine\*` (App, Http, Helper, Support, …) | Bootstrap, request/response, validation, templates, helpers, storage, security, errors |
+| Route | `Laika\Engine\Route` | Router, dispatcher, pipelines and filters |
+| Model | `Laika\Engine\Model` | PDO query builder, schema builder, backup, SQL converter |
+| Relay | `Laika\Engine\Relay`, `Laika\Engine\Services` | Service container, relay base class and the core service relays |
+| Session | `Laika\Engine\Session` | File, database, Redis and Memcached session handlers |
+| Auth | `Laika\Engine\Auth` | Session, cookie and token guards |
+| Shield | `Laika\Engine\Shield` | Firewall pipeline (rate limiting, IP/country blocking, SQLi/XSS detection) |
+| Queue | `Laika\Engine\Queue` | Background job queue and worker |
+| Cache | `Laika\Engine\Cache` | Cache drivers: file, array, Redis, Memcached |
+| Mailman | `Laika\Engine\Mailman` | Mail sending (PHPMailer) and IMAP/POP3 reading |
+| Cli | `Laika\Engine\Cli` | The `laika` command-line tool |
 
-The docs here explain how the packages fit together inside an application; each package's README goes deeper into its internals.
+The docs here explain how the modules fit together inside an application; the engine's `docs/<module>/` folders go deeper into their internals.
 
 ---
 

@@ -14,8 +14,8 @@
 
 declare(strict_types=1);
 
-use Laika\Service\Infra;
-use Laika\Route\Dispatcher;
+use Laika\Engine\Services\Infra;
+use Laika\Engine\Route\Dispatcher;
 
 #################################################################
 // --------------------- DEFINE CONSTANT --------------------- //

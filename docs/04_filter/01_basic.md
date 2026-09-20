@@ -15,7 +15,7 @@ Filters live in `lf-app/Filter/`, namespace `App\Filter`.
 ```php
 namespace App\Filter;
 
-use Laika\Route\Contracts\FilterInterface;
+use Laika\Engine\Route\Contracts\FilterInterface;
 
 class LogAccess implements FilterInterface
 {
@@ -35,7 +35,7 @@ class LogAccess implements FilterInterface
 ## Attaching Filters
 
 ```php
-use Laika\Route\Url;
+use Laika\Engine\Route\Url;
 
 Url::get('/', 'HomeController@index')->filter(LogAccess::class);
 Url::get('/dashboard', 'DashboardController@index')->filter(['LogAccess', 'Minify']);
@@ -73,7 +73,7 @@ public function terminate(callable $next, ?string $response, array &$params): ?s
 **Add a header:**
 
 ```php
-use Laika\Service\Response;
+use Laika\Engine\Services\Response;
 
 public function terminate(callable $next, ?string $response, array &$params): ?string
 {
@@ -88,7 +88,7 @@ public function terminate(callable $next, ?string $response, array &$params): ?s
 public function terminate(callable $next, ?string $response, array &$params): ?string
 {
     if (option_bool('maintenance')) {
-        \Laika\Service\Response::setStatus(503);
+        \Laika\Engine\Services\Response::setStatus(503);
         return '<h1>Down for maintenance</h1>';
     }
 
@@ -143,7 +143,7 @@ The rules are the same as for [pipelines](../03_pipeline/01_basic.md#dependencie
 
 ## Rules
 
-- Implement `Laika\Route\Contracts\FilterInterface` (any class with a matching `terminate()` method is accepted).
+- Implement `Laika\Engine\Route\Contracts\FilterInterface` (any class with a matching `terminate()` method is accepted).
 - Signature: `terminate(callable $next, ?string $response, array &$params): ?string`
 - An unknown filter name throws `FilterException` (status 500).
 

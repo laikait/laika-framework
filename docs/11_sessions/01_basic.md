@@ -1,14 +1,14 @@
 # Sessions
 
-[`laikait/laika-session`](https://github.com/laikait/laika-session) replaces PHP's own session storage with a pluggable handler. Three classes, one job each:
+The [Session module](https://github.com/laikait/laika-engine/tree/main/docs/session) of `laikait/laika-engine` replaces PHP's own session storage with a pluggable handler. Three classes, one job each:
 
 | Class | Role |
 |---|---|
-| `Laika\Session\SessionConfig` | Picks the driver and holds options/cookie params |
-| `Laika\Session\Session` | Reads and writes session data |
-| `Laika\Session\SessionManager` | Starts, stops, and destroys the session |
+| `Laika\Engine\Session\SessionConfig` | Picks the driver and holds options/cookie params |
+| `Laika\Engine\Session\Session` | Reads and writes session data |
+| `Laika\Engine\Session\SessionManager` | Starts, stops, and destroys the session |
 
-The framework wraps the configuration side in the `Init` relay (`Laika\Service\Init`), whose method names mirror `SessionConfig`'s — so `Init::redis()` is `SessionConfig::redis()` with the client already built from `lf-config/redis.php`. There is no `Session` relay: use `Laika\Session\Session` directly.
+The framework wraps the configuration side in the `Init` relay (`Laika\Engine\Services\Init`), whose method names mirror `SessionConfig`'s — so `Init::redis()` is `SessionConfig::redis()` with the client already built from `lf-config/redis.php`. There is no `Session` relay: use `Laika\Engine\Session\Session` directly.
 
 This page covers configuration and everyday use. Locking, garbage collection, failure modes and running on several servers are in [Session Drivers & Operations](02_drivers-and-operations.md).
 
@@ -18,7 +18,7 @@ Pick **one** driver before the first `Session::` call. Any file in `lf-hooks/` w
 
 ```php
 // lf-hooks/session.php
-use Laika\Service\Init;
+use Laika\Engine\Services\Init;
 
 Init::file(); // or model(), mysql(), redis(), memcached()
 ```
@@ -30,7 +30,7 @@ Calling a second driver method switches drivers — until the session starts. Th
 | Driver | Storage | Requires | Notes |
 |---|---|---|---|
 | `file` | Files on disk | — | The simplest choice. Single-server only. Files are `0600` and locked from read to write. |
-| `model` | `sessions` table via [laika-model](../05_models/01_basic.md) | `laikait/laika-model` | Uses the connection names in [`lf-config/database.php`](../01_getting-started/03_configuration.md#lf-configdatabasephp). The table is always named `sessions`. |
+| `model` | `sessions` table via [the Model module](../05_models/01_basic.md) | `laikait/laika-engine` | Uses the connection names in [`lf-config/database.php`](../01_getting-started/03_configuration.md#lf-configdatabasephp). The table is always named `sessions`. |
 | `mysql` | A table via raw PDO | `ext-pdo` | No ORM in the path. Uses the same table as `model` when `table` is `sessions` (the default), so you can switch between the two. |
 | `redis` | Redis keys | `ext-redis` | Reads [`lf-config/redis.php`](../01_getting-started/03_configuration.md#lf-configredisphp). Redis expires keys itself. |
 | `memcached` | Memcached items | `ext-memcached` | Reads [`lf-config/memcached.php`](../01_getting-started/03_configuration.md#lf-configmemcachedphp). Memcached expires items itself. |
@@ -40,7 +40,7 @@ There is no default driver — you must pick one. Redis and Memcached expire a s
 ### File
 
 ```php
-use Laika\Service\Init;
+use Laika\Engine\Services\Init;
 
 Init::file([
     'path'   => APP_PATH . '/lf-storage/sessions', // optional
@@ -53,23 +53,23 @@ Without `path`, the driver uses `session_save_path()`, falling back to the syste
 Outside the framework, or when you'd rather not go through the container:
 
 ```php
-use Laika\Session\SessionConfig;
+use Laika\Engine\Session\SessionConfig;
 
 SessionConfig::file(['prefix' => 'LK']);
 ```
 
-### Model (database via laika-model)
+### Model (database via the Model module)
 
 Pass a connection **name** from [`lf-config/database.php`](../01_getting-started/03_configuration.md#lf-configdatabasephp) — `Init::model()` registers that connection, under its own name, before selecting the driver. See [Models → Multiple Connections](../05_models/01_basic.md#multiple-connections).
 
 ```php
-use Laika\Service\Init;
+use Laika\Engine\Services\Init;
 
 Init::model('default');
 Init::model('default', install: true); // create the table on first use
 ```
 
-`install` defaults to `false`. With it on, every new PHP process checks for the table on its first session, and the runtime user needs DDL privileges it should not hold — do it once, then turn it back off. `install: true` builds the table with `Laika\Session\Schema\SessionSchema`; to create it by hand instead, this MySQL is compatible with both the `model` and `mysql` drivers (`SessionSchema` itself makes `data` `NOT NULL` and names the index its own way):
+`install` defaults to `false`. With it on, every new PHP process checks for the table on its first session, and the runtime user needs DDL privileges it should not hold — do it once, then turn it back off. `install: true` builds the table with `Laika\Engine\Session\Schema\SessionSchema`; to create it by hand instead, this MySQL is compatible with both the `model` and `mysql` drivers (`SessionSchema` itself makes `data` `NOT NULL` and names the index its own way):
 
 ```sql
 CREATE TABLE IF NOT EXISTS `sessions` (
@@ -84,19 +84,19 @@ CREATE TABLE IF NOT EXISTS `sessions` (
 The direct form takes an array instead of positional arguments:
 
 ```php
-use Laika\Session\SessionConfig;
+use Laika\Engine\Session\SessionConfig;
 
 SessionConfig::model(['connection' => 'default', 'install' => false]);
 ```
 
-`SessionConfig::model()` throws `SessionHandlerException` straight away if laika-model is not installed.
+`SessionConfig::model()` throws `SessionHandlerException` straight away if the Model module is not installed.
 
 ### MySQL (raw PDO)
 
-Same table, no laika-model dependency. `Init::mysql()` hands the driver the PDO instance from the named connection:
+Same table, without going through the Model module. `Init::mysql()` hands the driver the PDO instance from the named connection:
 
 ```php
-use Laika\Service\Init;
+use Laika\Engine\Services\Init;
 
 Init::mysql('default', ['table' => 'sessions']);
 ```
@@ -104,7 +104,7 @@ Init::mysql('default', ['table' => 'sessions']);
 Direct, with your own connection — the package never handles credentials:
 
 ```php
-use Laika\Session\SessionConfig;
+use Laika\Engine\Session\SessionConfig;
 
 $pdo = new PDO('mysql:host=127.0.0.1;dbname=myapp;charset=utf8mb4', 'user', 'pass', [
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -118,7 +118,7 @@ The table name is validated (`[A-Za-z0-9_]+`) because it is interpolated into th
 ### Redis
 
 ```php
-use Laika\Service\Init;
+use Laika\Engine\Services\Init;
 
 Init::redis(['prefix' => 'LK']); // client built from lf-config/redis.php
 ```
@@ -126,8 +126,8 @@ Init::redis(['prefix' => 'LK']); // client built from lf-config/redis.php
 Direct, with a client you connected and authenticated yourself:
 
 ```php
-use Laika\Session\SessionConfig;
-use Laika\Core\Storage\Connection\RedisConnection;
+use Laika\Engine\Session\SessionConfig;
+use Laika\Engine\Storage\Connection\RedisConnection;
 
 SessionConfig::redis(RedisConnection::make(), ['prefix' => 'LK', 'lifetime' => 1440]);
 ```
@@ -137,14 +137,14 @@ SessionConfig::redis(RedisConnection::make(), ['prefix' => 'LK', 'lifetime' => 1
 ### Memcached
 
 ```php
-use Laika\Service\Init;
+use Laika\Engine\Services\Init;
 
 Init::memcached(['prefix' => 'LK']); // client built from lf-config/memcached.php
 ```
 
 ```php
-use Laika\Session\SessionConfig;
-use Laika\Core\Storage\Connection\MemcachedConnection;
+use Laika\Engine\Session\SessionConfig;
+use Laika\Engine\Storage\Connection\MemcachedConnection;
 
 SessionConfig::memcached(MemcachedConnection::make(), ['prefix' => 'LK']);
 ```
@@ -156,7 +156,7 @@ SessionConfig::memcached(MemcachedConnection::make(), ['prefix' => 'LK']);
 Both merge over the defaults, so a partial call leaves the rest intact. Neither throws when no driver is selected — they are plain setters.
 
 ```php
-use Laika\Session\SessionConfig;
+use Laika\Engine\Session\SessionConfig;
 
 SessionConfig::options([
     'name'           => 'MY_APP', // cookie name, default 'LFSESS'
@@ -203,7 +203,7 @@ SessionConfig::cookies(['lifetime' => 604800]);
 ## Using the Session Class
 
 ```php
-use Laika\Session\Session;
+use Laika\Engine\Session\Session;
 
 // Set — one key at a time, in the 'APP' scope
 Session::set('user_id', 42);
@@ -263,7 +263,7 @@ The [session guard](../09_authentication/01_basic.md#session-guard) uses this: i
 `SessionManager` runs the lifecycle. You rarely need it directly:
 
 ```php
-use Laika\Session\SessionManager;
+use Laika\Engine\Session\SessionManager;
 
 SessionManager::isConfigured(); // has a driver been selected?
 SessionManager::isStarted();    // is the session active?
@@ -276,8 +276,8 @@ SessionManager::destroy();      // destroy the session and its cookie
 
 ```php
 // lf-hooks/session.php
-use Laika\Service\Init;
-use Laika\Session\SessionConfig;
+use Laika\Engine\Services\Init;
+use Laika\Engine\Session\SessionConfig;
 
 // 1. Driver — once, before first use
 Init::model('default');
@@ -289,7 +289,7 @@ SessionConfig::cookies(['domain' => '.example.com']);
 
 ```php
 // Anywhere in the app
-use Laika\Session\Session;
+use Laika\Engine\Session\Session;
 
 Session::set('user_id', 1);
 
@@ -303,7 +303,7 @@ Session::destroy();
 
 ## API Reference
 
-### `Laika\Session\Session` (static — the `APP` scope)
+### `Laika\Engine\Session\Session` (static — the `APP` scope)
 
 | Method | |
 |---|---|
@@ -318,9 +318,9 @@ Session::destroy();
 | `destroy(): bool` | Destroy data and expire the cookie |
 | `id(): string` / `name(): string` | **Start the session** if it isn't active; `''` only if it fails to start |
 
-`Laika\Session\Scope` has the same `set`/`get`/`has`/`pop`/`purge`/`all` methods, plus `name(): string`. `new Scope('cart')` is the same as `Session::scope('cart')`.
+`Laika\Engine\Session\Scope` has the same `set`/`get`/`has`/`pop`/`purge`/`all` methods, plus `name(): string`. `new Scope('cart')` is the same as `Session::scope('cart')`.
 
-### `Laika\Session\SessionConfig` (static)
+### `Laika\Engine\Session\SessionConfig` (static)
 
 | Method | |
 |---|---|
@@ -328,7 +328,7 @@ Session::destroy();
 | `redis(Redis $client, array $params = []): void` | Redis driver |
 | `memcached(Memcached $client, array $params = []): void` | Memcached driver |
 | `mysql(PDO $pdo, array $params = []): void` | Raw PDO driver |
-| `model(array $params = []): void` | laika-model driver |
+| `model(array $params = []): void` | Model driver |
 | `options(array $options = []): array` | Merge options; returns the full set, so `options()` alone is a getter |
 | `cookies(array $cookies = []): array` | Merge cookie params; returns the full set |
 | `driver(): ?string` / `params(): array` / `isConfigured(): bool` | Inspect the selection |
@@ -336,7 +336,7 @@ Session::destroy();
 
 Driver names are also available as constants: `SessionConfig::DRIVER_FILE`, `DRIVER_REDIS`, `DRIVER_MEMCACHED`, `DRIVER_MYSQL`, `DRIVER_MODEL`.
 
-### `Laika\Service\Init` (relay — the framework's shortcuts)
+### `Laika\Engine\Services\Init` (relay — the framework's shortcuts)
 
 | Method | |
 |---|---|
@@ -349,7 +349,7 @@ Driver names are also available as constants: `SessionConfig::DRIVER_FILE`, `DRI
 
 Each session method also turns the cookie's `secure` flag on when `Url::isHttps()` is true.
 
-### `Laika\Session\SessionManager` (static)
+### `Laika\Engine\Session\SessionManager` (static)
 
 `start(): void`, `isConfigured(): bool`, `isStarted(): bool`, `handler(): SessionDriverInterface`, `destroy(): bool`, `reset(): void`.
 

@@ -1,9 +1,9 @@
 # Relay List
 
-Every framework service is reachable through a relay in the `Laika\Service` namespace. Each relay forwards static calls to the instance bound under its key by `Laika\Relay\CoreProviders`.
+Every framework service is reachable through a relay in the `Laika\Engine\Services` namespace. Each relay forwards static calls to the instance bound under its key by `Laika\Engine\Relay\CoreProviders`.
 
 ```php
-use Laika\Service\{Request, Response, Url, Vault};
+use Laika\Engine\Services\{Request, Response, Url, Vault};
 
 Request::input('email');
 Response::setStatus(201);
@@ -15,12 +15,12 @@ Vault::encrypt('secret');
 
 ## Core Relays
 
-| Relay `Laika\Service\…` | Key | Class `Laika\Core\…` | Lifetime | Docs |
+| Relay `Laika\Engine\Services\…` | Key | Class `Laika\Engine\…` | Lifetime | Docs |
 |---|---|---|---|---|
 | `Activity` | `activity` | `Log\Activity` | singleton | [Errors & Logging](../18_errors-and-logging/01_basic.md#activity-log) |
 | `AppKey` | `app.key` | `App\Key` | singleton | [Encryption & Tokens](../10_security/03_encryption-and-tokens.md#app-key) |
 | `Asset` | `template.asset` | `Template\Asset` | singleton | [Assets](../06_templates/02_assets-meta-nav.md#styles-and-scripts) |
-| `Cache` | `cache` | `\Laika\Cache\Cache` (laika-cache) | singleton | [Caching](../20_cache/01_basic.md) |
+| `Cache` | `cache` | `\Laika\Engine\Cache\Cache` (the Cache module) | singleton | [Caching](../20_cache/01_basic.md) |
 | `Config` | `config` | `Helper\Config` | singleton | [Configuration](../01_getting-started/03_configuration.md) |
 | `Context` | `template.context` | `Template\Context` | singleton | [Assets](../06_templates/02_assets-meta-nav.md#context--data-for-every-template) |
 | `Cookie` | `cookie` | `Helper\Cookie` | singleton | [Responses](../02_routing/04_responses.md#cookies) |
@@ -64,10 +64,10 @@ Two relays don't share their class's name: `Visitor` fronts `Client`, and `AppKe
 
 | Relay | Key | Class | Notes |
 |---|---|---|---|
-| `Laika\Shield\Service\Shield` | `shield` | `Laika\Shield\Shield` | The firewall — see [Security (Shield)](../10_security/01_basic.md) |
-| `Laika\Shield\Service\ShieldConfig` | `shield.config` | `Laika\Shield\ShieldConfig` | The shared configuration (`ShieldConfig::instance()`), the same object the static class uses. laika-shield 2.0.3 and earlier couldn't resolve it — call the static class there. |
+| `Laika\Engine\Shield\Service\Shield` | `shield` | `Laika\Engine\Shield\Shield` | The firewall — see [Security (Shield)](../10_security/01_basic.md) |
+| `Laika\Engine\Shield\Service\ShieldConfig` | `shield.config` | `Laika\Engine\Shield\ShieldConfig` | The shared configuration (`ShieldConfig::instance()`), the same object the static class uses. laika-shield 2.0.3 and earlier couldn't resolve it — call the static class there. |
 
-`Laika\Session\Session` is **not** a relay — it's a plain static class, as are `SessionConfig` and `SessionManager`. The same goes for `Laika\Route\Url` (the router) and `Laika\Model\Connection`.
+`Laika\Engine\Session\Session` is **not** a relay — it's a plain static class, as are `SessionConfig` and `SessionManager`. The same goes for `Laika\Engine\Route\Url` (the router) and `Laika\Engine\Model\Connection`.
 
 ## Static Classes Without a Relay
 
@@ -75,21 +75,21 @@ These are used directly, by class name:
 
 | Class | Docs |
 |---|---|
-| `Laika\Core\App\Template` | [Templates](../06_templates/01_basic.md) |
-| `Laika\Core\Http\Validator` | [Requests](../02_routing/03_requests.md#validating-any-array) |
-| `Laika\Core\Http\ProxyTrust` | [Configuration](../01_getting-started/03_configuration.md#lf-configappphp) |
-| `Laika\Core\Helper\Zip`, `Laika\Core\Storage\*` | [Files & Storage](../16_files-and-storage/01_basic.md) |
-| `Laika\Core\Helper\Cron`, `Laika\Core\System\Command\Runner` | [Utilities](../19_utilities/01_basic.md) |
-| `Laika\Core\Worker\Queue` | [Queue](../12_queue/01_basic.md) |
-| `Laika\Core\Exceptions\*` | [Errors & Logging](../18_errors-and-logging/01_basic.md) |
+| `Laika\Engine\App\Template` | [Templates](../06_templates/01_basic.md) |
+| `Laika\Engine\Http\Validator` | [Requests](../02_routing/03_requests.md#validating-any-array) |
+| `Laika\Engine\Http\ProxyTrust` | [Configuration](../01_getting-started/03_configuration.md#lf-configappphp) |
+| `Laika\Engine\Helper\Zip`, `Laika\Engine\Storage\*` | [Files & Storage](../16_files-and-storage/01_basic.md) |
+| `Laika\Engine\Helper\Cron`, `Laika\Engine\System\Command\Runner` | [Utilities](../19_utilities/01_basic.md) |
+| `Laika\Engine\Worker\Queue` | [Queue](../12_queue/01_basic.md) |
+| `Laika\Engine\Exceptions\*` | [Errors & Logging](../18_errors-and-logging/01_basic.md) |
 
 ## Using a Class Directly
 
 A relay only forwards to a shared instance, so you can construct any class yourself when you want your own copy:
 
 ```php
-use Laika\Core\Http\Request;
-use Laika\Core\Sanitizer\NullSanitizer;
+use Laika\Engine\Http\Request;
+use Laika\Engine\Sanitizer\NullSanitizer;
 
 $raw = new Request(new NullSanitizer()); // a request that doesn't HTML-encode input
 ```

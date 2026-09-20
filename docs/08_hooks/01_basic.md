@@ -73,7 +73,7 @@ add_hook('page.title', fn ($t) => "{$t}!", 20);        // runs second
 
 ## Built-in Hooks
 
-laika-core registers its template helpers as hooks at **priority 1000**, so your callbacks (at 10) run before them:
+The Core module registers its template helpers as hooks at **priority 1000**, so your callbacks (at 10) run before them:
 
 `app_host`, `app_name`, `asset`, `cache`, `cache_remember`, `local`, `csrf_field`, `alert_set`, `alert_get`, `page_title`, `page_number`, `request_header`, `request_input`, `request_inputs`, `request_is`, `context_add`, `context`, `enqueue_meta`, `enqueue_style`, `enqueue_script`, `print_metas`, `print_styles`, `print_scripts`, `lf_header`, `lf_footer`, `time_zones`.
 
@@ -105,13 +105,13 @@ A hook of your own that returns HTML is escaped by Twig — add `|raw` if you tr
 
 ## API Reference
 
-| Global function | Relay method (`Laika\Service\Hook`) | Signature |
+| Global function | Relay method (`Laika\Engine\Services\Hook`) | Signature |
 |---|---|---|
 | `add_hook()` | `Hook::add()` | `add_hook(string $filter, callable $callback, int $priority = 10): void` |
 | `do_hook()` | `Hook::do()` | `do_hook(string $filter, mixed ...$args): void` |
 | `apply_hook()` | `Hook::apply()` | `apply_hook(string $filter, mixed $value = null, mixed ...$args): mixed` |
 
-`Laika\Core\Helper\Hook` holds the registry in static properties, so the functions, the relay and the class are interchangeable.
+`Laika\Engine\Helper\Hook` holds the registry in static properties, so the functions, the relay and the class are interchangeable.
 
 ## See Also
 

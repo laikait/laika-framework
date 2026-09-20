@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use Laika\Relay\Relay;
+use Laika\Engine\Relay\Relay;
 
 /**
  * @method static void assign(string|array $key, mixed $value = null)

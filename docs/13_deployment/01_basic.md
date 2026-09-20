@@ -2,13 +2,15 @@
 
 ## Entry Points
 
-All web traffic must be routed through `index.php` — it loads `lf-boot/app.php` and calls `Url::dispatch()`. The framework itself then decides which static files may be served (see [`lf-config/assets.php`](../01_getting-started/03_configuration.md#lf-configassetsphp)), so nothing else in the project root should be reachable directly.
+All web traffic must be routed through `public/index.php` — it loads `lf-boot/app.php` and calls `Url::dispatch()`. The framework itself then decides which static files may be served (see [`lf-config/assets.php`](../01_getting-started/03_configuration.md#lf-configassetsphp)).
 
-Point the web server's document root at the **project root** — Laika has no `public/` subdirectory.
+Point the web server's document root at **`public/`**, not at the project root. `public/` holds only the front controller and its `.htaccess`, so `lf-*`, `vendor/`, `composer.json` and `lf-storage/keys/app.key` can't be reached by URL at all. Static files (`assets/`, `template/assets/`, `uploads/`) stay in the project root and are served through PHP, so their URLs don't change.
+
+The project root also ships a deny-all `.htaccess`, which blocks everything if a vhost is pointed at the project root by mistake.
 
 ### Apache
 
-`.htaccess` ships with the rewrite rule in place (and `php laika app:sync` regenerates it if it's missing):
+`public/.htaccess` ships with the rewrite rule in place (and `php laika app:sync` regenerates it if it's missing):
 
 ```apache
 <IfModule mod_rewrite.c>
@@ -21,17 +23,75 @@ Point the web server's document root at the **project root** — Laika has no `p
 
 `mod_rewrite` must be enabled and `AllowOverride` must allow `FileInfo` for the directory.
 
-### nginx
+```apache
+<VirtualHost *:80>
+    ServerName example.com
+    DocumentRoot /var/www/example.com/public
 
-Do not hand-write this. `nginx.conf` in the project root is generated, and
-`php laika nginx:server` prints a complete server block that includes it:
-
-```bash
-php laika nginx:make                                  # (re)generate nginx.conf
-php laika nginx:server --domain=example.com --php=8.3 # full server block
+    <Directory /var/www/example.com/public>
+        AllowOverride FileInfo
+        Require all granted
+    </Directory>
+</VirtualHost>
 ```
 
-`nginx.conf` holds the deny rules and the front-controller rewrite:
+### nginx
+
+Do not hand-write this. `php laika nginx:server` prints a **complete, self-contained
+server block** — deny rules, front-controller rewrite and PHP handler all in it, `root`
+set to `public/`. It includes no other file from the project, so it is the only thing you
+need:
+
+```bash
+php laika nginx:server --domain=example.com --php=8.3 --output=/etc/nginx/sites-available/example.com
+ln -s /etc/nginx/sites-available/example.com /etc/nginx/sites-enabled/
+nginx -t && systemctl reload nginx
+```
+
+Without `--output` it prints to stdout so you can read it first. `--root` names the
+project path on the *target* server, without `/public` — pass it when you generate the
+config somewhere other than where it will run, or it defaults to this machine's path.
+
+#### If you already maintain an nginx config
+
+`php laika nginx:make` writes those same rules to `nginx.conf` in the project root as a
+fragment you `include` from a server block you own. Use this only when `nginx:server`'s
+block doesn't fit what you already have.
+
+| File | What it is | Where it goes |
+|---|---|---|
+| The server block | Complete `server { ... }`, from `nginx:server` | Your nginx config, e.g. `/etc/nginx/sites-available/example.com` |
+| `nginx.conf` | The same rules as a fragment, from `nginx:make` | Stays in the project root, `include`d by a server block you wrote |
+
+The two are alternatives, not a pair — pick one. If you use `nginx.conf`, your own block
+**must** set `root` to `<project>/public`, and it **must** define `location = /index.php`
+above which the `include` sits:
+
+```nginx
+server {
+    server_name example.com;
+    root /var/www/app/public;
+    index index.php;
+
+    include /var/www/app/nginx.conf;
+
+    location = /index.php {
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root/index.php;
+    }
+}
+```
+
+Never point `nginx:server --output` at that `nginx.conf`. It is meant to be included from
+*inside* a server block, so a server block written there nests one in the other and nginx
+fails with `"server" directive is not allowed here` — and the deny rules are lost. The
+command refuses that target; if it already happened, `php laika nginx:make --force`
+regenerates the file.
+
+#### The front-controller rewrite
+
+Both outputs carry the same rewrite:
 
 ```nginx
 location / {
@@ -43,19 +103,18 @@ location / {
 }
 ```
 
-Every request is rewritten to `index.php`, including ones that map to a real file, so
+Every request is rewritten to `public/index.php`, including ones that map to a real file, so
 the framework decides what may be served rather than nginx handing files out before PHP
 runs. The cost is that static assets go through PHP instead of nginx's static path —
 see [Static file caching](#static-file-caching) below for what that does and does not cost.
 
-> The server block **must** define `location = /index.php`. That is what terminates the
-> rewrite above — without it nginx loops and returns 500. It also means no PHP file
-> other than the front controller can ever be executed directly. `php laika nginx:server`
-> emits it for you; keep the `include` of `nginx.conf` above it.
+> `location = /index.php` is what terminates that rewrite — without it nginx loops and
+> returns 500. It also means no PHP file other than the front controller can ever be
+> executed directly. The generated server block already has it, below the rewrite.
 
 ### Static file caching
 
-Static files are served by `Laika\Route\Asset`, not by the web server, so the cache
+Static files are served by `Laika\Engine\Route\Asset`, not by the web server, so the cache
 policy comes from [`lf-config/assets.php`](../01_getting-started/03_configuration.md#lf-configassetsphp)
 rather than from an `expires` directive. Out of the box every response carries:
 
@@ -83,7 +142,7 @@ to the server with the `sendfile` key, which keeps the authorisation decision in
 the I/O out of it.
 
 **nginx** (`'sendfile' => 'x-accel-redirect'`). The app sends the file's path relative to
-the project root, so nginx needs an `internal` location covering the roots you serve from:
+the project root, not to `public/`, so nginx needs an `internal` location covering the roots you serve from, with its own `root` set to the project root:
 
 ```nginx
 location ~ ^/(assets|uploads|template)/ {
@@ -93,7 +152,7 @@ location ~ ^/(assets|uploads|template)/ {
 ```
 
 `internal` is what makes this safe: the location is reachable only from an
-`X-Accel-Redirect`, never from the outside, so requests still enter through `index.php`
+`X-Accel-Redirect`, never from the outside, so requests still enter through `public/index.php`
 and nginx moves the bytes only once PHP has named the file. Add any other servable root
 to that regex, or the app will point nginx at a location it does not handle and the
 response will be empty.
@@ -176,12 +235,12 @@ Two consequences:
 If the runtime database user can't run DDL, create them once with a privileged connection — a [custom command](../01_getting-started/04_cli.md#writing-your-own-commands) is a good place:
 
 ```php
-(new \Laika\Core\Schema\OptionSchema('default'))->up();
-(new \Laika\Core\Schema\ActivitySchema('default'))->up();
-(new \Laika\Session\Schema\SessionSchema('default'))->up();
-(new \Laika\Auth\Schema\AuthSchema('default'))->up();
-(new \Laika\Queue\Schema\QueueModelSchema())->up();      // database queue driver; follows queue.connection
-(new \Laika\Queue\Schema\FailedJobModelSchema())->up();  // database failed-job store
+(new \Laika\Engine\Schema\OptionSchema('default'))->up();
+(new \Laika\Engine\Schema\ActivitySchema('default'))->up();
+(new \Laika\Engine\Session\Schema\SessionSchema('default'))->up();
+(new \Laika\Engine\Auth\Schema\AuthSchema('default'))->up();
+(new \Laika\Engine\Queue\Schema\QueueModelSchema())->up();      // database queue driver; follows queue.connection
+(new \Laika\Engine\Queue\Schema\FailedJobModelSchema())->up();  // database failed-job store
 ```
 
 ## Timezone
@@ -190,14 +249,14 @@ The framework sets PHP's default timezone to **UTC** at boot. Store dates in UTC
 
 ```php
 // lf-hooks/timezone.php
-\Laika\Service\Date::setAppTimezone('Asia/Dhaka');
+\Laika\Engine\Services\Date::setAppTimezone('Asia/Dhaka');
 ```
 
 For MySQL, add `'timezone' => '+00:00'` to the connection so the database session agrees with PHP.
 
 ## Memory Limits
 
-`lf-inc/const.php` defines `MEMORY_LIMIT` and `CLI_MEMORY_LIMIT`. laika-core applies them to `memory_limit` at boot, through `Laika\Core\System\MemoryManager::apply()`:
+`lf-inc/const.php` defines `MEMORY_LIMIT` and `CLI_MEMORY_LIMIT`. The Core module applies them to `memory_limit` at boot, through `Laika\Engine\System\MemoryManager::apply()`:
 
 | Process | Limit |
 |---|---|

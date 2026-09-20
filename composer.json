@@ -5,8 +5,7 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "App\\": "lf-app/",
-            "Laika\\Cache\\": "vendor/laikait/laika-cache/src/"
+            "App\\": "lf-app/"
         }
     },
     "authors": [
@@ -22,17 +21,14 @@
     "minimum-stability": "stable",
     "require": {
         "php": ">=8.1",
-        "laikait/laika-core": "5.1.*"
+        "laikait/laika-engine": "2.1.*"
     },
     "scripts": {
         "post-autoload-dump": [
-            "Laika\\Cli\\ScriptHandler::generate",
-            "Laika\\Queue\\ScriptHandler::generate",
             "@php laika app:sync"
         ],
         "post-create-project-cmd": [
-            "Laika\\Cli\\ScriptHandler::generate",
-            "Laika\\Queue\\ScriptHandler::generate"
+            "@php laika app:sync"
         ]
     },
     "config": {

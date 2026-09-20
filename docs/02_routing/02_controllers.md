@@ -12,7 +12,7 @@ php laika controller:make UserController --method=index
 namespace App\Controller;
 
 use App\Model\UsersModel;
-use Laika\Core\App\Template;
+use Laika\Engine\App\Template;
 
 class UserController
 {
@@ -45,7 +45,7 @@ Url::get('/users/{id}', 'UserController@show')->name('users.show');
 Returning JSON, setting a status, redirecting and downloading files are all covered in [Responses](04_responses.md):
 
 ```php
-use Laika\Service\Response;
+use Laika\Engine\Services\Response;
 
 public function status(): string
 {
@@ -84,7 +84,7 @@ Controllers are built through the service container, so both the **constructor**
 ```php
 namespace App\Controller;
 
-use Laika\Auth\AuthManager;
+use Laika\Engine\Auth\AuthManager;
 use App\Service\Billing;
 
 class InvoiceController
@@ -107,12 +107,12 @@ How each method parameter is filled, in order:
 4. `null`, if the parameter is nullable.
 5. Otherwise a `RuntimeException` ("Missing required parameter").
 
-> **Don't type-hint relays or core classes.** The framework's own services are bound under keys (`'response'`, `'request'`, ...), not class names. Type-hinting `Laika\Core\Http\Response` builds a *new* `Response` — setting its status changes nothing. Type-hinting a relay (`Laika\Service\Request`) gives you a proxy object whose instance methods don't exist. Call relays statically instead: `Request::input('email')`, `Response::setStatus(201)`.
+> **Don't type-hint relays or core classes.** The framework's own services are bound under keys (`'response'`, `'request'`, ...), not class names. Type-hinting `Laika\Engine\Http\Response` builds a *new* `Response` — setting its status changes nothing. Type-hinting a relay (`Laika\Engine\Services\Request`) gives you a proxy object whose instance methods don't exist. Call relays statically instead: `Request::input('email')`, `Response::setStatus(201)`.
 
 ## Returning a View
 
 ```php
-use Laika\Core\App\Template;
+use Laika\Engine\App\Template;
 
 public function index(): string
 {
@@ -127,7 +127,7 @@ See [Templates](../06_templates/01_basic.md).
 ## Reading Input
 
 ```php
-use Laika\Service\{Request, Redirect};
+use Laika\Engine\Services\{Request, Redirect};
 
 public function store(): ?string
 {
@@ -156,7 +156,7 @@ See [Models & Database](../05_models/01_basic.md).
 ## Using the Session
 
 ```php
-use Laika\Session\Session;
+use Laika\Engine\Session\Session;
 
 $userId = Session::get('user_id');
 ```

@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace App\Job;
 
-use Laika\Queue\Abstracts\Job;
+use Laika\Engine\Queue\Abstracts\Job;
 
 /**
  * Demo job: appends a line to lf-storage/logs/write-log.log every time

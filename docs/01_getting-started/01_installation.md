@@ -5,7 +5,7 @@
 | Requirement | Notes |
 |---|---|
 | PHP `>= 8.1` | 8.1 – 8.5 are tested in CI |
-| Composer 2.x | `laika-cli` and `laika-queue` generate the `laika` and `worker` executables from a `post-autoload-dump` script |
+| Composer 2.x | `laikait/laika-engine` generates the `laika` and `worker` executables from a `post-autoload-dump` script |
 | `ext-openssl` | Required. Encryption, the app key, CSRF tokens, JWTs, TLS for mail |
 | `ext-mbstring` | Used by the validator (string lengths) and the input sanitizer |
 | `ext-pdo` + a driver | `pdo_mysql`, `pdo_pgsql`, `pdo_sqlite`, `pdo_sqlsrv`, ... for your database |
@@ -14,9 +14,9 @@ Optional extensions, needed only by the feature that uses them:
 
 | Extension | Needed by |
 |---|---|
-| `bcmath` | `Laika\Service\Math` |
-| `gd` | `Laika\Service\Image`, and `processimage` on uploads |
-| `zip` | `Laika\Core\Helper\Zip` |
+| `bcmath` | `Laika\Engine\Services\Math` |
+| `gd` | `Laika\Engine\Services\Image`, and `processimage` on uploads |
+| `zip` | `Laika\Engine\Helper\Zip` |
 | `fileinfo` | MIME detection on uploads, `File::mime()`, `MimeType::fromContent()` |
 | `redis` | Redis session driver, Redis queue driver, `RedisStorage` |
 | `memcached` | Memcached session driver, `MemcachedStorage` |
@@ -29,7 +29,7 @@ composer create-project laikait/laika-framework myproject
 cd myproject
 ```
 
-This pulls in the skeleton and `laikait/laika-core`, which in turn requires every other framework package (`laika-route`, `laika-model`, `laika-relay`, `laika-session`, `laika-auth`, `laika-shield`, `laika-queue`, `laika-cli`, `laika-mailman`).
+This pulls in the skeleton and `laikait/laika-engine`, the single package that holds the whole framework: core, routing, models, the relay container, sessions, auth, the Shield firewall, queue, cache, mail and the CLI.
 
 Composer then runs the project's scripts:
 
@@ -46,21 +46,25 @@ composer install
 
 ## The `laika` and `worker` Executables
 
-`laikait/laika-cli` and `laikait/laika-queue` generate a `laika` and a `worker` executable in your project root. Both are thin proxies into the copy installed in `vendor/`, so they always match the version this project has.
+`laikait/laika-engine` generates a `laika` and a `worker` executable in your project root. Both are thin proxies into the copy installed in `vendor/`, so they always match the version this project has.
 
 They are written by a `post-autoload-dump` script, so they appear on the first `composer install` and are rewritten whenever their content changes. Delete one and it comes back on the next Composer run. Both are git-ignored. A project not created from the skeleton needs to wire the scripts itself:
 
 ```json
 "scripts": {
     "post-autoload-dump": [
-        "Laika\\Cli\\ScriptHandler::generate",
-        "Laika\\Queue\\ScriptHandler::generate",
         "@php laika app:sync"
     ]
 }
 ```
 
-> **No `allow-plugins` entry is needed.** Both packages were Composer *plugins* before laika-cli 3.0 and required trusting in every consuming project. They are ordinary libraries now, so you can drop `laikait/laika-cli` and `laikait/laika-queue` from `config.allow-plugins` if an older project still lists them.
+One entry does everything: `app:sync` writes both executables before the rest of its work.
+
+It works on a first install, before the root `laika` file exists — Composer resolves `@php <name>` against the filesystem and, failing that, looks it up on `PATH`, to which it has already added `vendor/bin`. `laikait/laika-engine` ships `laika` and `worker` as Composer binaries, so the first run goes through `vendor/bin/laika` and every later run uses the root file directly.
+
+While the CLI and the queue shipped as separate packages, each had its own Composer script handler. `Laika\Engine\Cli\ScriptHandler::generate` and `Laika\Engine\Queue\ScriptHandler::generate` both still exist and call the same generator, so an older `composer.json` keeps working with no edit.
+
+> **No `allow-plugins` entry is needed.** `laika-engine` is an ordinary library, not a Composer plugin, so an older project can drop `laikait/laika-cli` and `laikait/laika-queue` from `config.allow-plugins`.
 
 ## Run the Development Server
 
@@ -71,7 +75,7 @@ php laika app:start --host=0.0.0.0 --port=8080
 
 Starts PHP's built-in server on `127.0.0.1:8000`, moving to the next free port if 8000 is busy.
 
-Every request goes through `index.php`, as behind Apache or nginx, so static files follow [`lf-config/assets.php`](03_configuration.md#lf-configassetsphp) and project files such as `lf-storage/keys/app.key` aren't served.
+Every request goes through `public/index.php`, as behind Apache or nginx, so static files follow [`lf-config/assets.php`](03_configuration.md#lf-configassetsphp) and project files such as `lf-storage/keys/app.key` aren't served.
 
 > **Development only.** PHP's built-in server handles one request at a time and isn't hardened — never expose it to a network you don't trust. (laika-cli 3.0.9 and earlier started it without a router script, serving every file in the project directory as-is.) In production use Apache or nginx, see [Deployment](../13_deployment/01_basic.md).
 
